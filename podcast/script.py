@@ -30,7 +30,7 @@ def dutch_date(d: date) -> str:
 def _article_text(link: str) -> str:
     try:
         raw = trafilatura.fetch_url(link)
-        return (trafilatura.extract(raw) or "")[:2500] if raw else ""
+        return (trafilatura.extract(raw) or "")[:5000] if raw else ""
     except Exception:
         return ""
 

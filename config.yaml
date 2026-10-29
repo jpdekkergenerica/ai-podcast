@@ -11,13 +11,13 @@ duration:
   max_minutes: 15          # bovengrens van de aflevering
   item_minutes_top: 3.0    # spreektijd voor een bericht met score 10 (de aflevering wordt hierna op max_minutes geschaald)
   item_minutes_floor: 1.0  # spreektijd voor een bericht op de minimumscore
-  max_stretch: 1.6         # hooguit zoveel keer uitgebreider als er te weinig nieuws is om de tijd te vullen
+  max_stretch: 2.0         # hooguit zoveel keer uitgebreider als er te weinig nieuws is om de tijd te vullen
   intro_outro_minutes: 2.5 # haak, showintro en synthese; wordt van max_minutes afgetrokken
   words_per_minute: 150    # spreektempo voor het woordbudget
 
 relevance:
-  lookback_hours: 72       # alleen berichten van de afgelopen X uur (ruim, voor nicheonderwerpen; herhaling wordt apart tegengehouden)
-  min_item_score: 4        # nooit onder deze score; zwakkere berichten komen alleen aan bod als er tijd te vullen is
+  lookback_hours: 96       # alleen berichten van de afgelopen X uur (ruim, voor nicheonderwerpen; herhaling wordt apart tegengehouden)
+  min_item_score: 3        # nooit onder deze score; zwakkere berichten komen alleen aan bod als er tijd te vullen is
   coverage_min_score: 6    # een onderwerp met een bericht van deze score of hoger komt altijd aan bod
   topic_decay: 0.7         # extra bericht van hetzelfde onderwerp telt zoveel punten minder (verdeelt de tijd eerlijker)
   max_topics: 5            # 2 tot 4 inhoudelijke blokken per aflevering
