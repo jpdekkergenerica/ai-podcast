@@ -17,6 +17,10 @@ Elke ochtend (GitHub Actions) wordt automatisch een podcast gemaakt:
    als een ander bericht (ook van een andere bron) of als iets dat al is besproken, tenzij er nieuwe feiten zijn.
    Nederlandse focus: berichten zonder duidelijke link met Nederland krijgen een lage score (`relevance.focus`).
 4. Claude schrijft een Nederlands script met een woordbudget per gebied.
+   **Uitspraak:** een aparte stap zoekt in elk script de afkortingen, buitenlandse namen en symbolen die een
+   Nederlandse stem fout leest, en schrijft ze zoals ze gezegd worden (ASML -> aa-es-em-el). Wat de app leert staat in
+   `pronunciation.json`, zodat een term elke dag hetzelfde klinkt. Blijft de stem iets fout doen? Zet het in
+   `config.yaml` onder `pronunciation`; dat wint altijd. Titels en beschrijvingen blijven gewoon geschreven.
 5. ElevenLabs maakt er audio van per hoofdstuk; ffmpeg normaliseert naar -16 LUFS / -1 dBTP (128 kbps CBR mono)
    en ID3-hoofdstukken worden toegevoegd. De mp3 komt als GitHub Release, de feed op GitHub Pages.
 

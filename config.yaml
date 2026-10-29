@@ -39,6 +39,12 @@ voice:
     style: 0.3
     use_speaker_boost: true
 
+# Vaste uitspraken (hebben voorrang op wat de app zelf leert; die staat in pronunciation.json).
+# Zet hier wat de stem fout blijft uitspreken: term (exact, hoofdlettergevoelig) -> hoe het gezegd moet worden.
+pronunciation:
+  ASML: "aa-es-em-el"
+  AEX: "aa-ee-iks"
+
 # Een onderwerp mag terugkeren; hetzelfde nieuws niet (ook niet via een andere bron).
 # 'keywords' (regex, hoofdletterongevoelig) filtert de feeds op titel + samenvatting; zonder keywords komt alles mee.
 topics:

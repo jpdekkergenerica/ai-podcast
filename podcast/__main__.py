@@ -8,6 +8,7 @@ import yaml
 from .audio import master, seconds_for, tag_chapters
 from .feed import save_episode, write_site
 from .plan import TopicPlan, plan_episode, save_covered
+from .pronounce import load_learned, prepare, save_learned
 from .script import split_chapters, write_script
 from .tts import synthesize
 
@@ -34,11 +35,15 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     chapters = split_chapters(script)
     (out / "script.txt").write_text(script)
     print(f"\n{title}\n{summary}\n({len(script.split())} woorden, {len(chapters)} hoofdstukken)")
+    spoken, new_terms = prepare(chapters, cfg)  # uitspraak: afkortingen, buitenlandse namen, symbolen
+    (out / "script_uitgesproken.txt").write_text("\n\n".join(spoken))
+    print("Uitspraak (nieuw): " + (", ".join(f"{k} -> {v}" for k, v in new_terms.items()) or "geen"))
     if no_tts:
-        print("\n" + script)
+        print("\n" + "\n\n".join(spoken))
         return
+    save_learned({**load_learned(), **new_terms})
 
-    audio = [synthesize(text, cfg) for _, text in chapters]
+    audio = [synthesize(text, cfg) for text in spoken]
     raw, mp3 = out / f"{today.isoformat()}.raw.mp3", out / f"{today.isoformat()}.mp3"
     raw.write_bytes(b"".join(audio))
     master(raw, mp3)

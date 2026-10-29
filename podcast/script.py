@@ -16,7 +16,7 @@ Stijl:
 - Gesproken taal: wissel korte, krachtige zinnen af met langere, genuanceerde. Stel af en toe een vraag. Geen kale opsomming van berichten; verbind ze tot een verhaal.
 - Geen opmaak, kopjes, opsommingstekens, haakjes of regieaanwijzingen. De enige toegestane markeringen zijn de hoofdstukmarkers en pauzes zoals hieronder beschreven.
 - Pauzes: schrijf `<break time="1.2s" />` vlak vóór een belangrijk kernpunt of direct na een ingewikkelde bewering, zodat de luisteraar kan nadenken. Maximaal 6 keer per aflevering.
-- Schrijf getallen, bedragen en afkortingen uit zoals je ze uitspreekt ("twee komma vijf procent", "de Europese Centrale Bank").
+- Schrijf getallen en bedragen uit zoals je ze uitspreekt ("twee komma vijf procent"). Afkortingen en namen schrijf je gewoon in hun normale schrijfwijze (ASML, Nvidia, ECB); de uitspraak wordt in een aparte stap geregeld. Gebruik waar het natuurlijk is liever de volledige Nederlandse naam ("de Europese Centrale Bank") dan alleen de afkorting.
 Inhoud:
 - Gebruik uitsluitend feiten uit het aangeleverde materiaal. Verzin niets en vul niets aan uit eigen kennis; wees eerlijk als iets onzeker is. Een duiding of takeaway mag, nieuwe feiten niet.
 - Noem de bron kort in de zin ("meldt de NOS"), nooit een URL.
