@@ -1,0 +1,58 @@
+name: Dagelijkse podcast
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # 04:00 UTC = 05:00/06:00 Nederlandse tijd
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: podcast
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Aflevering maken
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: python -m podcast build
+
+      - name: MP3 publiceren als release
+        if: hashFiles('out/tag.txt') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(cat out/tag.txt)
+          gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$tag" "out/${tag#ep-}.mp3" --title "$tag" --notes "Automatisch gegenereerd"
+
+      - name: Episodelijst opslaan
+        run: |
+          git config user.name "podcast-bot"
+          git config user.email "podcast-bot@users.noreply.github.com"
+          git add episodes.json
+          git diff --cached --quiet || (git commit -m "Aflevering toegevoegd" && git push)
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out/site
+      - id: deploy
+        uses: actions/deploy-pages@v4

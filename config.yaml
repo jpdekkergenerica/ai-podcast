@@ -1,0 +1,46 @@
+podcast:
+  title: "Mijn Dagelijkse Briefing"
+  description: "Elke ochtend een persoonlijke, automatisch samengestelde nieuwspodcast over mijn interessegebieden."
+  author: "JP"
+  email: "jouw@email.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
+  language: "nl"
+  repository: "jpdekkergenerica/ai-podcast"      # alleen voor lokaal draaien; in GitHub Actions wordt dit automatisch gevuld
+
+duration:
+  max_minutes: 15          # bovengrens van de aflevering
+  minutes_per_point: 0.2   # relevantiepunten (score 0-10 per bericht) -> spreektijd; bepaalt hoe snel de max wordt gehaald
+  words_per_minute: 150    # spreektempo voor het woordbudget
+
+relevance:
+  lookback_hours: 36       # alleen berichten van de afgelopen X uur
+  min_item_score: 6        # berichten onder deze score worden niet besproken
+  max_items_per_topic: 5
+  max_candidates_per_topic: 25
+
+models:
+  scoring: "claude-haiku-5-5"
+  script: "claude-sonnet-5-5"
+
+voice:
+  voice_id: "pNInz6obpgDQGcFmaJgB"   # vervang door een stem uit jouw ElevenLabs-bibliotheek
+  model_id: "eleven_multilingual_v2" # "eleven_flash_v2_5" is ~2x goedkoper, iets minder natuurlijk
+
+# Pas de interessegebieden vrij aan. 'description' vertelt Claude wat jij relevant vindt.
+topics:
+  - name: "Tech & AI"
+    description: "Nieuwe AI-modellen en -toepassingen, grote techbedrijven, software, gadgets, cybersecurity."
+    feeds:
+      - https://feeds.nos.nl/nosnieuwstech
+      - https://tweakers.net/feeds/nieuws.xml
+  - name: "Economie"
+    description: "Rente, inflatie, beurs, bedrijfsnieuws en maatregelen die mijn portemonnee raken."
+    feeds:
+      - https://feeds.nos.nl/nosnieuwseconomie
+  - name: "Nederland & wereld"
+    description: "Belangrijkste binnenlandse politiek en grote internationale gebeurtenissen."
+    feeds:
+      - https://feeds.nos.nl/nosnieuwsalgemeen
+  - name: "Sport"
+    description: "Voetbal (Eredivisie, Oranje), Formule 1 en grote sportevenementen."
+    feeds:
+      - https://feeds.nos.nl/nossportalgemeen
