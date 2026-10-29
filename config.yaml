@@ -9,7 +9,7 @@ podcast:
 
 duration:
   max_minutes: 15          # bovengrens van de aflevering
-  minutes_per_point: 0.2   # relevantiepunten (score 0-10 per bericht) -> spreektijd; bepaalt hoe snel de max wordt gehaald
+  max_minutes_per_item: 2.0 # rem: meer spreektijd per bericht dan dit wordt niet gebruikt (de aflevering kan dan korter zijn)
   intro_outro_minutes: 2.5 # haak, showintro en synthese; wordt van max_minutes afgetrokken
   words_per_minute: 150    # spreektempo voor het woordbudget
 

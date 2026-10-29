@@ -4,8 +4,9 @@ Elke ochtend (GitHub Actions) wordt automatisch een podcast gemaakt:
 
 1. Nieuws ophalen uit de RSS-feeds per interessegebied (`config.yaml`).
 2. Claude geeft elk bericht een relevantiescore (0-10). Berichten onder `min_item_score` vallen af.
-3. Spreektijd per gebied = som van de scores x `minutes_per_point`. Komt het totaal boven `max_minutes`,
-   dan wordt alles evenredig ingekort. Een rustige dag geeft dus een kortere aflevering.
+3. De beschikbare tijd (`max_minutes` min haak en synthese) wordt verdeeld over de onderwerpen, evenredig met
+   hun relevantie. Heeft een onderwerp geen nieuws, dan vullen de andere onderwerpen die tijd. Alleen als er
+   voor alle onderwerpen te weinig materiaal is (`max_minutes_per_item`) wordt de aflevering korter.
 4. Claude schrijft een Nederlands script met een woordbudget per gebied.
 5. ElevenLabs maakt er audio van per hoofdstuk; ffmpeg normaliseert naar -16 LUFS / -1 dBTP (128 kbps CBR mono)
    en ID3-hoofdstukken worden toegevoegd. De mp3 komt als GitHub Release, de feed op GitHub Pages.

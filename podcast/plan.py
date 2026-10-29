@@ -38,6 +38,26 @@ Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
     return scores
 
 
+def allocate(plans: list[TopicPlan], budget: float, cap_per_item: float) -> None:
+    """Verdeelt de tijd evenredig met de relevantie. Heeft een onderwerp te weinig materiaal voor zijn deel
+    (cap = aantal berichten x cap_per_item), dan gaat de rest naar de andere onderwerpen."""
+    caps = {p.name: len(p.items) * cap_per_item for p in plans}
+    for p in plans:
+        p.minutes = 0.0
+    open_, left = plans[:], budget
+    while open_ and left > 1e-9:
+        pts = sum(p.points for p in open_)
+        over = [p for p in open_ if p.minutes + left * p.points / pts > caps[p.name]]
+        if not over:
+            for p in open_:
+                p.minutes += left * p.points / pts
+            break
+        for p in over:
+            left -= caps[p.name] - p.minutes
+            p.minutes = caps[p.name]
+            open_.remove(p)
+
+
 def plan_episode(cfg: dict) -> list[TopicPlan]:
     rel, dur = cfg["relevance"], cfg["duration"]
     plans: list[TopicPlan] = []
@@ -55,13 +75,8 @@ def plan_episode(cfg: dict) -> list[TopicPlan]:
 
     # 2 tot 4 inhoudelijke blokken houdt een solo-aflevering overzichtelijk
     plans = sorted(plans, key=lambda p: -p.points)[: rel["max_topics"]]
-    for p in plans:
-        p.minutes = p.points * dur["minutes_per_point"]
-    total = sum(p.minutes for p in plans)
     budget = dur["max_minutes"] - dur["intro_outro_minutes"]  # ruimte voor haak, intro en synthese
-    if total > budget:
-        for p in plans:
-            p.minutes *= budget / total
+    allocate(plans, budget, dur["max_minutes_per_item"])
     plans.sort(key=lambda p: -p.minutes)
     print(f"Totaal: {sum(p.minutes for p in plans):.1f} minuten")
     return plans
