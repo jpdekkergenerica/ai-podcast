@@ -48,17 +48,18 @@ COVERED = Path("covered.json")
 
 
 def load_covered(today: date, days: int) -> list[dict]:
-    """Berichten uit eerdere afleveringen (laatste `days` dagen, zonder vandaag), om herhaling te voorkomen."""
-    if not COVERED.exists():
+    """Berichten uit eerdere afleveringen van de laatste `days` dagen, vandaag meegerekend, om herhaling te
+    voorkomen. days = 0 zet de controle uit (handig om met hetzelfde nieuws te testen)."""
+    if days <= 0 or not COVERED.exists():
         return []
     since = (today - timedelta(days=days)).isoformat()
-    return [c for c in json.loads(COVERED.read_text()) if since <= c["date"] < today.isoformat()]
+    return [c for c in json.loads(COVERED.read_text()) if c["date"] >= since]
 
 
 def save_covered(today: date, plans: list["TopicPlan"], keep_days: int = 14) -> None:
     old = json.loads(COVERED.read_text()) if COVERED.exists() else []
     since = (today - timedelta(days=keep_days)).isoformat()
-    kept = [c for c in old if c["date"] >= since and c["date"] != today.isoformat()]
+    kept = [c for c in old if c["date"] >= since]
     kept += [{"date": today.isoformat(), "topic": p.name, "title": item.title, "link": item.link}
              for p in plans for item, _ in p.items]
     COVERED.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n")

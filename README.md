@@ -13,7 +13,7 @@ Elke ochtend (GitHub Actions) wordt automatisch een podcast gemaakt:
    onderwerpen worden eruit gehaald. Is er te weinig nieuws, dan worden de berichten hooguit `max_stretch` keer
    uitgebreider behandeld en blijft de aflevering daarna korter.
    **Geen herhaling:** een onderwerp mag elke dag terugkomen, maar hetzelfde nieuws niet. `covered.json` onthoudt
-   wat de laatste dagen is besproken; een Claude-controle schrapt kandidaten die over dezelfde gebeurtenis gaan
+   wat de laatste dagen (vandaag meegerekend) is besproken; `repeat_days: 0` zet dit uit, handig om met hetzelfde nieuws te testen; een Claude-controle schrapt kandidaten die over dezelfde gebeurtenis gaan
    als een ander bericht (ook van een andere bron) of als iets dat al is besproken, tenzij er nieuwe feiten zijn.
    Nederlandse focus: berichten zonder duidelijke link met Nederland krijgen een lage score (`relevance.focus`).
 4. Claude schrijft een Nederlands script met een woordbudget per gebied.
