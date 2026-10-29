@@ -19,6 +19,7 @@ Stijl:
 - Schrijf getallen en bedragen uit zoals je ze uitspreekt ("twee komma vijf procent"). Afkortingen en namen schrijf je gewoon in hun normale schrijfwijze (ASML, Nvidia, ECB); de uitspraak wordt in een aparte stap geregeld. Gebruik waar het natuurlijk is liever de volledige Nederlandse naam ("de Europese Centrale Bank") dan alleen de afkorting.
 Inhoud:
 - Gebruik uitsluitend feiten uit het aangeleverde materiaal. Verzin niets en vul niets aan uit eigen kennis; wees eerlijk als iets onzeker is. Een duiding of takeaway mag, nieuwe feiten niet.
+- Noem bedrijven en organisaties bij de eerste vermelding met hun volledige naam (bijvoorbeeld "ASM International", niet alleen "ASMI") en neem namen exact over uit het materiaal. Verwar nooit partijen met een vergelijkbare naam of afkorting; maak het onderscheid zo nodig expliciet ("ASM International, een ander bedrijf dan ASML"). Twijfel je over wie er bedoeld wordt, zeg dan wat de bron letterlijk meldt.
 - Noem de bron kort in de zin ("meldt de NOS"), nooit een URL.
 - Houd je aan de woordbudgetten (maximaal 10% afwijking). Gebruik natuurlijke overgangen tussen onderwerpen."""
 
