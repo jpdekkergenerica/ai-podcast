@@ -44,6 +44,7 @@ voice:
 pronunciation:
   ASML: "aa-es-em-el"
   AEX: "aa-ee-iks"
+  NOS: "Nos"           # wordt als woord uitgesproken, niet letter voor letter
 
 # Een onderwerp mag terugkeren; hetzelfde nieuws niet (ook niet via een andere bron).
 # 'keywords' (regex, hoofdletterongevoelig) filtert de feeds op titel + samenvatting; zonder keywords komt alles mee.

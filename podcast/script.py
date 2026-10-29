@@ -65,8 +65,27 @@ SAMENVATTING: <maximaal twee volledige zinnen; de eerste 250 tekens noemen direc
 MATERIAAL:
 
 {material}"""
-    raw = ask(prompt, model=cfg["models"]["script"], system=SYSTEM, max_tokens=16000,
-               thinking={"type": "between_tools"})  # Sonnet 5.5: geen redeneerblok, anders slokt dat het hele tokenbudget op
+    model = cfg["models"]["script"]
+    raw = ask(prompt, model=model, system=SYSTEM, max_tokens=16000,
+              thinking={"type": "between_tools"})  # Sonnet 5.5: geen redeneerblok, anders slokt dat het hele tokenbudget op
+    target = round(sum(p.minutes for p in plans) * wpm) + 350  # onderwerpen + opening en afsluiting
+    words = len(raw.partition("\n---")[2].split())
+    if words < 0.85 * target:  # Claude schrijft vaak korter dan het budget; één keer laten uitbreiden
+        print(f"Script te kort ({words} van ca. {target} woorden), laat uitbreiden")
+        draft = raw
+        raw = ask(f"""Hieronder staat je concept van de aflevering ({words} woorden). Het moet ongeveer {target} woorden zijn.
+Breid het uit tot die lengte: werk elk onderwerp uitgebreider uit met meer context, achtergrond en nuance uit het
+MATERIAAL, en gebruik de woordbudgetten per onderwerp. Voeg geen feiten toe die niet in het materiaal staan en rek
+niet op met herhaling. Houd opbouw, hoofdstukmarkers en antwoordformat (TITEL, SAMENVATTING, ---, script) exact gelijk.
+
+CONCEPT:
+{raw}
+
+MATERIAAL:
+
+{material}""", model=model, system=SYSTEM, max_tokens=16000, thinking={"type": "between_tools"})
+        if len(raw.partition("\n---")[2].split()) <= words:
+            raw = draft  # uitbreiding hielp niet: concept houden
     head, _, script = raw.partition("\n---")
     title = summary = ""
     for line in head.splitlines():
