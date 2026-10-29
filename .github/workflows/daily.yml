@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "30 2 * * *"  # 02:30 UTC = 03:30/04:30 Nederlandse tijd, vóór de ochtendspits
   workflow_dispatch:
+    inputs:
+      feed_only:
+        description: "Alleen de feed opnieuw bouwen en publiceren (geen nieuwe aflevering)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -31,10 +36,15 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Aflevering maken
+        if: ${{ !inputs.feed_only }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: python -m podcast build
+
+      - name: Alleen feed bouwen
+        if: ${{ inputs.feed_only }}
+        run: python -m podcast feed
 
       - name: MP3 publiceren als release
         if: hashFiles('out/tag.txt') != ''

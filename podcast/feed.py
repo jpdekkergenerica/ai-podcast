@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 from datetime import datetime
@@ -83,6 +84,10 @@ def write_site(cfg: dict, site_dir: Path) -> None:
     site, media, _ = _urls(cfg)
     site_dir.mkdir(parents=True, exist_ok=True)
     make_cover(p["title"], site_dir / "cover.jpg")
+    # Apple onthoudt artwork per URL: een versie in de bestandsnaam zorgt dat een nieuwe cover wordt opgehaald
+    digest = hashlib.sha1((site_dir / "cover.jpg").read_bytes()).hexdigest()[:8]
+    cover = f"cover-{digest}.jpg"
+    (site_dir / cover).write_bytes((site_dir / "cover.jpg").read_bytes())
 
     fg = FeedGenerator()
     fg.load_extension("podcast")
@@ -93,7 +98,7 @@ def write_site(cfg: dict, site_dir: Path) -> None:
     fg.language(p["language"])
     fg.podcast.itunes_author(p["author"])
     fg.podcast.itunes_owner(name=p["author"], email=p["email"])
-    fg.podcast.itunes_image(f"{site}/cover.jpg")
+    fg.podcast.itunes_image(f"{site}/{cover}")
     fg.podcast.itunes_category("News", "Daily News")
     fg.podcast.itunes_explicit("no")
 
