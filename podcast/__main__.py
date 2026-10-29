@@ -9,7 +9,7 @@ import yaml
 from .audio import master, seconds_for, tag_chapters
 from .feed import save_episode, write_site
 from .plan import TopicPlan, plan_episode, save_covered
-from .pronounce import load_learned, prepare, save_learned
+from .pronounce import load_learned, persistable, prepare, save_learned
 from .script import split_chapters, write_script
 from .tts import synthesize
 
@@ -42,7 +42,7 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     if no_tts:
         print("\n" + "\n\n".join(spoken))
         return
-    save_learned({**load_learned(), **new_terms})
+    save_learned({**load_learned(), **persistable(new_terms)})
 
     audio = [synthesize(text, cfg) for text in spoken]
     # unieke id per run: een opnieuw gemaakte aflevering van dezelfde dag moet voor apps een nieuwe aflevering zijn
