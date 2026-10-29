@@ -57,18 +57,18 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     tag_chapters(mp3, [(c[0], round(s * 1000), round(e * 1000)) for c, s, e in zip(chapters, starts, ends)])
 
     save_episode({
-        "guid": f"episode-{today.isoformat()}",
+        "guid": f"episode-{stamp}",
         "date": today.isoformat(),
         "published": now.isoformat(timespec="seconds"),
         "title": title,
         "summary": describe(summary, [c[0] for c in chapters], plans),
-        "tag": f"ep-{today.isoformat()}",
+        "tag": f"ep-{stamp}",
         "file": mp3.name,
         "size": mp3.stat().st_size,
         "duration": duration,
     })
     save_covered(today, plans)
-    (out / "tag.txt").write_text(f"ep-{today.isoformat()}")
+    (out / "tag.txt").write_text(f"ep-{stamp}")
 
 
 def main() -> None:

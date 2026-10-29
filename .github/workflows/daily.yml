@@ -52,7 +52,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag=$(cat out/tag.txt)
-          gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+          # eerdere releases van dezelfde dag opruimen (een nieuwe run vervangt de aflevering van die dag)
+          for old in $(gh release list --limit 100 --json tagName -q '.[].tagName' | grep "^${tag:0:13}"); do
+            gh release delete "$old" --yes --cleanup-tag
+          done
           gh release create "$tag" "out/${tag#ep-}.mp3" --title "$tag" --notes "Automatisch gegenereerd"
 
       - name: Episodelijst opslaan

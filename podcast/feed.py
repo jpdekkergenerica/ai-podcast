@@ -16,7 +16,7 @@ def load_episodes() -> list[dict]:
 
 
 def save_episode(ep: dict) -> None:
-    eps = [e for e in load_episodes() if e["guid"] != ep["guid"]] + [ep]
+    eps = [e for e in load_episodes() if e["date"] != ep["date"]] + [ep]  # één aflevering per dag; opnieuw draaien vervangt
     eps.sort(key=lambda e: e["date"], reverse=True)
     EPISODES.write_text(json.dumps(eps, ensure_ascii=False, indent=2) + "\n")
 
