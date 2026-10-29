@@ -4,6 +4,7 @@ podcast:
   author: "Generica"
   email: "j.p.dekker@generica.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
   language: "nl"
+  keep_episodes: 14      # zoveel afleveringen staan in de feed en als mp3 op de site (oudere blijven als release bewaard)
   call_to_action: "Stuur deze aflevering door naar één persoon die ook wil bijblijven."  # precies één concrete oproep aan het eind
   repository: "jpdekkergenerica/ai-podcast"      # alleen voor lokaal draaien; in GitHub Actions wordt dit automatisch gevuld
 

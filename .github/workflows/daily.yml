@@ -72,6 +72,17 @@ jobs:
             done
           fi
 
+      - name: Audio op de site zetten
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p out/site/audio
+          python -c "import json,yaml;n=yaml.safe_load(open('config.yaml'))['podcast']['keep_episodes'];[print(e['tag'],e['file']) for e in json.load(open('episodes.json'))[:n]]" |
+          while read tag file; do
+            if [ -f "out/$file" ]; then cp "out/$file" out/site/audio/; else gh release download "$tag" -p "$file" -D out/site/audio; fi
+          done
+          ls -l out/site/audio
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

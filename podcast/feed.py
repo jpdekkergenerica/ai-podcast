@@ -103,7 +103,8 @@ def write_site(cfg: dict, site_dir: Path) -> None:
     fg.podcast.itunes_explicit("no")
 
     tz = ZoneInfo("Europe/Amsterdam")
-    for ep in load_episodes():
+    episodes = load_episodes()[: p.get("keep_episodes", 14)]  # alleen deze afleveringen staan als mp3 op de site
+    for ep in episodes:
         fe = fg.add_entry(order="append")
         fe.id(ep["guid"])
         fe.guid(ep["guid"], permalink=False)
@@ -111,7 +112,7 @@ def write_site(cfg: dict, site_dir: Path) -> None:
         fe.description(ep["summary"])
         published = datetime.fromisoformat(ep.get("published") or ep["date"]).replace(tzinfo=None)
         fe.pubDate(published.replace(tzinfo=tz) if "published" in ep else published.replace(hour=6, tzinfo=tz))
-        fe.enclosure(f"{media}/{ep['tag']}/{ep['file']}", str(ep["size"]), "audio/mpeg")
+        fe.enclosure(f"{site}/audio/{ep['file']}", str(ep["size"]), "audio/mpeg")
         fe.podcast.itunes_duration(_hms(ep["duration"]))
     fg.rss_file(str(site_dir / "feed.xml"), pretty=True)
-    print(f"Feed geschreven: {site}/feed.xml ({len(load_episodes())} afleveringen)")
+    print(f"Feed geschreven: {site}/feed.xml ({len(episodes)} afleveringen)")
