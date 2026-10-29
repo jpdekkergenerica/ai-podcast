@@ -4,7 +4,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import yaml
-from mutagen.mp3 import MP3
 
 from .feed import save_episode, write_site
 from .plan import plan_episode
@@ -38,7 +37,7 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
         "tag": f"ep-{today.isoformat()}",
         "file": filename,
         "size": mp3.stat().st_size,
-        "duration": int(MP3(mp3).info.length),
+        "duration": round(mp3.stat().st_size * 8 / 64000),  # CBR 64 kbps; mutagen leest bij samengevoegde mp3's maar het eerste deel
     })
     (out / "tag.txt").write_text(f"ep-{today.isoformat()}")
 
