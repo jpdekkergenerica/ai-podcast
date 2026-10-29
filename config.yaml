@@ -1,7 +1,7 @@
 podcast:
-  title: "Mijn Dagelijkse Briefing"
-  description: "Elke ochtend een persoonlijke, automatisch samengestelde nieuwspodcast over mijn interessegebieden."
-  author: "JP"
+  title: "Nynke's Podcast"
+  description: "Elke ochtend een persoonlijke, automatisch samengestelde nieuwspodcast over de interessegebieden van Nynke."
+  author: "Generica"
   email: "j.p.dekker@generica.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
   language: "nl"
   call_to_action: "Stuur deze aflevering door naar één persoon die ook wil bijblijven."  # precies één concrete oproep aan het eind
