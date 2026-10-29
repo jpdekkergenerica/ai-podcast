@@ -19,7 +19,9 @@ def score_items(topic: dict, items: list[Item], model: str) -> list[int]:
 Wat de luisteraar hierin interessant vindt: {topic['description']}
 
 Beoordeel elk nieuwsbericht van 0 tot 10 op relevantie voor dit interessegebied én nieuwswaarde.
-10 = het belangrijkste nieuws van de dag voor deze luisteraar; 0 = irrelevant, clickbait of reclame.
+Gebruik een absolute schaal, zodat scores tussen interessegebieden vergelijkbaar zijn:
+9-10 = groot nieuws met verregaande gevolgen, dat de hele nieuwsdag bepaalt; 7-8 = duidelijk belangrijk;
+5-6 = interessant maar niet urgent; 3-4 = marginaal; 0-2 = irrelevant, clickbait of reclame.
 Wees streng: op een gewone dag zijn er weinig berichten met 8 of hoger. Gaan meerdere berichten over
 dezelfde gebeurtenis, geef dan alleen het beste bericht een hoge score.
 
@@ -38,45 +40,95 @@ Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
     return scores
 
 
-def allocate(plans: list[TopicPlan], budget: float, cap_per_item: float) -> None:
-    """Verdeelt de tijd evenredig met de relevantie. Heeft een onderwerp te weinig materiaal voor zijn deel
-    (cap = aantal berichten x cap_per_item), dan gaat de rest naar de andere onderwerpen."""
-    caps = {p.name: len(p.items) * cap_per_item for p in plans}
-    for p in plans:
-        p.minutes = 0.0
-    open_, left = plans[:], budget
-    while open_ and left > 1e-9:
-        pts = sum(p.points for p in open_)
-        over = [p for p in open_ if p.minutes + left * p.points / pts > caps[p.name]]
-        if not over:
-            for p in open_:
-                p.minutes += left * p.points / pts
+def minutes_for(score: int, dur: dict, floor: int) -> float:
+    """Spreektijd voor een bericht: loopt lineair van item_minutes_floor (laagste score) tot item_minutes_top (10)."""
+    lo, hi = dur["item_minutes_floor"], dur["item_minutes_top"]
+    return lo + (hi - lo) * (max(floor, min(10, score)) - floor) / (10 - floor)
+
+
+def select(pool: list[tuple[Item, int]], budget: float, cfg: dict) -> list[TopicPlan]:
+    """Vult de beschikbare tijd met de meest impactvolle berichten, over alle onderwerpen heen.
+
+    Impact bepaalt zowel of een bericht meedoet als hoeveel tijd het krijgt; de tijd van een onderwerp is
+    daarmee vanzelf de som van zijn berichten (veel en/of belangrijk nieuws = meer tijd). Daarna wordt alles
+    geschaald zodat het totaal precies het budget is (hooguit max_stretch keer uitgebreider)."""
+    rel, dur = cfg["relevance"], cfg["duration"]
+    floor = rel["min_item_score"]
+    chosen: list[tuple[Item, int, float]] = []
+    per_topic: dict[str, int] = {}
+    left = list(pool)
+    total = 0.0
+
+    def can_add(item: Item) -> bool:
+        if item.topic not in per_topic and len(per_topic) >= rel["max_topics"]:
+            return False
+        return per_topic.get(item.topic, 0) < rel["max_items_per_topic"]
+
+    def add(item: Item, score: int) -> None:
+        nonlocal total
+        left.remove((item, score))
+        per_topic[item.topic] = per_topic.get(item.topic, 0) + 1
+        t = minutes_for(score, dur, floor)
+        chosen.append((item, score, t))
+        total += t
+
+    # 1. dekking: elk onderwerp met voldoende relevant nieuws krijgt eerst zijn beste bericht
+    seeds: dict[str, tuple[Item, int]] = {}
+    for item, score in pool:  # gesorteerd, dus de eerste per onderwerp is de beste
+        if score >= rel["coverage_min_score"]:
+            seeds.setdefault(item.topic, (item, score))
+    for item, score in sorted(seeds.values(), key=lambda p: -p[1]):
+        if total < budget and can_add(item):
+            add(item, score)
+
+    # 2. rest op impact, met afnemende meerwaarde: elk extra bericht van een onderwerp telt iets minder zwaar,
+    #    zodat een zwaar onderwerp veel tijd krijgt zonder alle anderen te verdringen
+    while total < budget:
+        options = [(score - rel["topic_decay"] * per_topic.get(item.topic, 0), item, score)
+                   for item, score in left if can_add(item)]
+        if not options:
             break
-        for p in over:
-            left -= caps[p.name] - p.minutes
-            p.minutes = caps[p.name]
-            open_.remove(p)
+        _, item, score = max(options, key=lambda o: o[0])
+        add(item, score)
+    if not chosen:
+        return []
+
+    factor = min(budget / total, dur["max_stretch"])
+    plans: dict[str, TopicPlan] = {}
+    for item, score, t in chosen:
+        item.minutes = t * factor
+        plan = plans.setdefault(item.topic, TopicPlan(item.topic))
+        plan.items.append((item, score))
+        plan.points += score
+        plan.minutes += item.minutes
+    return sorted(plans.values(), key=lambda p: -p.minutes)
 
 
 def plan_episode(cfg: dict) -> list[TopicPlan]:
     rel, dur = cfg["relevance"], cfg["duration"]
-    plans: list[TopicPlan] = []
+    pool: list[tuple[Item, int]] = []
     for topic in cfg["topics"]:
         items = fetch_topic(topic, rel["lookback_hours"], rel["max_candidates_per_topic"])
         if not items:
             continue
         scores = score_items(topic, items, cfg["models"]["scoring"])
-        best = sorted(zip(items, scores), key=lambda p: -p[1])
-        chosen = [p for p in best if p[1] >= rel["min_item_score"]][: rel["max_items_per_topic"]]
-        plan = TopicPlan(topic["name"], chosen, sum(s for _, s in chosen))
-        print(f"{topic['name']}: {len(items)} berichten, {len(chosen)} gekozen, relevantie {plan.points}")
-        if chosen:
-            plans.append(plan)
+        usable = [(it, s) for it, s in zip(items, scores) if s >= rel["min_item_score"]]
+        print(f"{topic['name']}: {len(items)} berichten, {len(usable)} bruikbaar, "
+              f"hoogste score {max(scores)}")
+        pool += usable
 
-    # 2 tot 4 inhoudelijke blokken houdt een solo-aflevering overzichtelijk
-    plans = sorted(plans, key=lambda p: -p.points)[: rel["max_topics"]]
+    pool.sort(key=lambda p: -p[1])  # stabiel: bij gelijke score blijft de volgorde van de config
+    seen: set[str] = set()
+    unique = []
+    for item, score in pool:  # hetzelfde bericht in twee onderwerpen: alleen de eerste (hoogste score)
+        key = item.link or item.title
+        if key not in seen:
+            seen.add(key)
+            unique.append((item, score))
+
     budget = dur["max_minutes"] - dur["intro_outro_minutes"]  # ruimte voor haak, intro en synthese
-    allocate(plans, budget, dur["max_minutes_per_item"])
-    plans.sort(key=lambda p: -p.minutes)
-    print(f"Totaal: {sum(p.minutes for p in plans):.1f} minuten")
+    plans = select(unique, budget, cfg)
+    for p in plans:
+        print(f"  {p.name}: {len(p.items)} berichten, {p.minutes:.1f} min")
+    print(f"Totaal: {sum(p.minutes for p in plans):.1f} van {budget:.1f} minuten")
     return plans

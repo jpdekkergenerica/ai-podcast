@@ -42,7 +42,7 @@ def write_script(plans: list[TopicPlan], cfg: dict, today: date) -> tuple[str, s
         lines = [f"ONDERWERP: {p.name} — woordbudget: {round(p.minutes * wpm)} woorden"]
         for item, score in p.items:
             item.text = _article_text(item.link)
-            lines.append(f"- [{item.source}] {item.title}\n  {item.text or item.summary}")
+            lines.append(f"- [{item.source}] {item.title} (ca. {round(item.minutes * wpm)} woorden)\n  {item.text or item.summary}")
         blocks.append("\n".join(lines))
     material = "\n\n".join(blocks)
     cta = cfg["podcast"]["call_to_action"]

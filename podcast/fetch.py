@@ -15,6 +15,7 @@ class Item:
     link: str
     source: str
     text: str = ""
+    minutes: float = 0.0  # spreektijd die dit bericht in de aflevering krijgt
 
 
 def _clean(s: str) -> str:
