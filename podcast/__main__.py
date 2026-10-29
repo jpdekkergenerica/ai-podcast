@@ -44,7 +44,9 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     save_learned({**load_learned(), **new_terms})
 
     audio = [synthesize(text, cfg) for text in spoken]
-    raw, mp3 = out / f"{today.isoformat()}.raw.mp3", out / f"{today.isoformat()}.mp3"
+    # unieke id per run: een opnieuw gemaakte aflevering van dezelfde dag moet voor apps een nieuwe aflevering zijn
+    stamp = now.strftime("%Y-%m-%d-%H%M")
+    raw, mp3 = out / f"{stamp}.raw.mp3", out / f"{stamp}.mp3"
     raw.write_bytes(b"".join(audio))
     master(raw, mp3)
 
