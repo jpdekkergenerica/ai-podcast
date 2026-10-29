@@ -7,7 +7,7 @@ podcast:
   repository: "jpdekkergenerica/ai-podcast"      # alleen voor lokaal draaien; in GitHub Actions wordt dit automatisch gevuld
 
 duration:
-  max_minutes: 30          # bovengrens van de aflevering
+  max_minutes: 15          # bovengrens van de aflevering
   minutes_per_point: 0.2   # relevantiepunten (score 0-10 per bericht) -> spreektijd; bepaalt hoe snel de max wordt gehaald
   words_per_minute: 150    # spreektempo voor het woordbudget
 
