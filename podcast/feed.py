@@ -31,24 +31,51 @@ def _hms(seconds: int) -> str:
     return f"{seconds // 3600}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
 
 
+FONTS = ["/System/Library/Fonts/Helvetica.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
+
+
+def _font(size: int) -> ImageFont.FreeTypeFont:
+    for path in FONTS:
+        try:
+            return ImageFont.truetype(path, size, index=1) if path.endswith(".ttc") else ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
+
+
 def make_cover(title: str, dest: Path) -> None:
-    size = 1600
-    img = Image.new("RGB", (size, size), "#1f3a5f")
+    """3000x3000 JPEG, hoog contrast, één beeldmerk en grote titel binnen de veilige marge (leesbaar op 100x100)."""
+    custom = Path("assets/cover.jpg")
+    if custom.exists():
+        dest.write_bytes(custom.read_bytes())
+        return
+    size, margin = 3000, 450
+    img = Image.new("RGB", (size, size), "#12161f")
     draw = ImageDraw.Draw(img)
-    font = ImageFont.load_default(size=170)
-    words, lines, cur = title.split(), [], ""
-    for w in words:
-        if cur and draw.textlength(f"{cur} {w}", font=font) > size - 240:
-            lines.append(cur)
-            cur = w
-        else:
-            cur = f"{cur} {w}".strip()
-    lines.append(cur)
-    y = (size - len(lines) * 200) // 2
+    cx, cy, r = size // 2, 1000, 600
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill="#ff7a3d")
+    for i, h in enumerate([220, 440, 760, 960, 620, 840, 360, 200]):
+        x = cx - 4 * 100 + i * 100 + 15
+        draw.rounded_rectangle((x, cy - h // 2, x + 60, cy + h // 2), radius=30, fill="#12161f")
+
+    fs = 400
+    while True:
+        font, lines, cur = _font(fs), [], ""
+        for w in title.split():
+            if cur and draw.textlength(f"{cur} {w}", font=font) > size - 2 * margin:
+                lines.append(cur)
+                cur = w
+            else:
+                cur = f"{cur} {w}".strip()
+        lines.append(cur)
+        if len(lines) * fs * 1.15 <= 800 or fs < 150:
+            break
+        fs -= 20
+    y = 1850
     for line in lines:
-        draw.text(((size - draw.textlength(line, font=font)) / 2, y), line, fill="white", font=font)
-        y += 200
-    img.save(dest, "JPEG", quality=90)
+        draw.text(((size - draw.textlength(line, font=font)) / 2, y), line, fill="#ffc94d", font=font)
+        y += int(fs * 1.15)
+    img.save(dest, "JPEG", quality=85)
 
 
 def write_site(cfg: dict, site_dir: Path) -> None:
@@ -77,7 +104,8 @@ def write_site(cfg: dict, site_dir: Path) -> None:
         fe.guid(ep["guid"], permalink=False)
         fe.title(ep["title"])
         fe.description(ep["summary"])
-        fe.pubDate(datetime.fromisoformat(ep["date"]).replace(hour=6, tzinfo=tz))
+        published = datetime.fromisoformat(ep.get("published") or ep["date"]).replace(tzinfo=None)
+        fe.pubDate(published.replace(tzinfo=tz) if "published" in ep else published.replace(hour=6, tzinfo=tz))
         fe.enclosure(f"{media}/{ep['tag']}/{ep['file']}", str(ep["size"]), "audio/mpeg")
         fe.podcast.itunes_duration(_hms(ep["duration"]))
     fg.rss_file(str(site_dir / "feed.xml"), pretty=True)

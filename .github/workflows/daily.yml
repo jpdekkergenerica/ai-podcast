@@ -2,7 +2,7 @@ name: Dagelijkse podcast
 
 on:
   schedule:
-    - cron: "0 4 * * *"   # 04:00 UTC = 05:00/06:00 Nederlandse tijd
+    - cron: "30 2 * * *"  # 02:30 UTC = 03:30/04:30 Nederlandse tijd, vóór de ochtendspits
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,8 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: ffmpeg installeren
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Aflevering maken
         env:

@@ -1,6 +1,5 @@
 import os
 import time
-from pathlib import Path
 
 import requests
 
@@ -23,29 +22,32 @@ def _chunks(text: str) -> list[str]:
     return out
 
 
-def synthesize(text: str, cfg: dict, dest: Path) -> None:
+def synthesize(text: str, cfg: dict) -> bytes:
+    """Zet tekst om naar mp3 (128 kbps, mono) en geeft de bytes terug."""
     voice = cfg["voice"]
     headers = {"xi-api-key": os.environ["ELEVENLABS_API_KEY"]}
     parts = _chunks(text)
-    with dest.open("wb") as f:
-        for i, part in enumerate(parts):
-            body = {"text": part, "model_id": voice["model_id"]}
-            if i > 0:
-                body["previous_text"] = parts[i - 1][-300:]
-            if i < len(parts) - 1:
-                body["next_text"] = parts[i + 1][:300]
-            for attempt in range(4):
-                r = requests.post(
-                    API.format(voice=voice["voice_id"]),
-                    params={"output_format": "mp3_44100_64"},
-                    headers=headers,
-                    json=body,
-                    timeout=180,
-                )
-                if r.status_code in (429, 500, 502, 503) and attempt < 3:
-                    time.sleep(5 * (attempt + 1))
-                    continue
-                r.raise_for_status()
-                break
-            f.write(r.content)
-            print(f"Audio deel {i + 1}/{len(parts)} klaar")
+    audio = bytearray()
+    for i, part in enumerate(parts):
+        body = {"text": part, "model_id": voice["model_id"]}
+        if voice.get("settings"):
+            body["voice_settings"] = voice["settings"]
+        if i > 0:
+            body["previous_text"] = parts[i - 1][-300:]
+        if i < len(parts) - 1:
+            body["next_text"] = parts[i + 1][:300]
+        for attempt in range(4):
+            r = requests.post(
+                API.format(voice=voice["voice_id"]),
+                params={"output_format": "mp3_44100_128"},
+                headers=headers,
+                json=body,
+                timeout=180,
+            )
+            if r.status_code in (429, 500, 502, 503) and attempt < 3:
+                time.sleep(5 * (attempt + 1))
+                continue
+            r.raise_for_status()
+            break
+        audio += r.content
+    return bytes(audio)

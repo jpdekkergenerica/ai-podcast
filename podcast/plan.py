@@ -53,12 +53,15 @@ def plan_episode(cfg: dict) -> list[TopicPlan]:
         if chosen:
             plans.append(plan)
 
+    # 2 tot 4 inhoudelijke blokken houdt een solo-aflevering overzichtelijk
+    plans = sorted(plans, key=lambda p: -p.points)[: rel["max_topics"]]
     for p in plans:
         p.minutes = p.points * dur["minutes_per_point"]
     total = sum(p.minutes for p in plans)
-    if total > dur["max_minutes"]:
+    budget = dur["max_minutes"] - dur["intro_outro_minutes"]  # ruimte voor haak, intro en synthese
+    if total > budget:
         for p in plans:
-            p.minutes *= dur["max_minutes"] / total
+            p.minutes *= budget / total
     plans.sort(key=lambda p: -p.minutes)
     print(f"Totaal: {sum(p.minutes for p in plans):.1f} minuten")
     return plans

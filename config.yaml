@@ -4,16 +4,19 @@ podcast:
   author: "JP"
   email: "j.p.dekker@generica.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
   language: "nl"
+  call_to_action: "Stuur deze aflevering door naar één persoon die ook wil bijblijven."  # precies één concrete oproep aan het eind
   repository: "jpdekkergenerica/ai-podcast"      # alleen voor lokaal draaien; in GitHub Actions wordt dit automatisch gevuld
 
 duration:
   max_minutes: 15          # bovengrens van de aflevering
   minutes_per_point: 0.2   # relevantiepunten (score 0-10 per bericht) -> spreektijd; bepaalt hoe snel de max wordt gehaald
+  intro_outro_minutes: 2.5 # haak, showintro en synthese; wordt van max_minutes afgetrokken
   words_per_minute: 150    # spreektempo voor het woordbudget
 
 relevance:
   lookback_hours: 36       # alleen berichten van de afgelopen X uur
   min_item_score: 6        # berichten onder deze score worden niet besproken
+  max_topics: 4            # 2 tot 4 inhoudelijke blokken per aflevering
   max_items_per_topic: 8
   max_candidates_per_topic: 25
 
@@ -24,6 +27,11 @@ models:
 voice:
   voice_id: "dLPO5AsXc3FZDbTh1IKa"   # vervang door een stem uit jouw ElevenLabs-bibliotheek
   model_id: "eleven_multilingual_v2" # "eleven_flash_v2_5" is ~2x goedkoper, iets minder natuurlijk
+  settings:                          # lagere stability + meer style = levendiger, minder voorleesklank
+    stability: 0.4
+    similarity_boost: 0.75
+    style: 0.3
+    use_speaker_boost: true
 
 # Pas de interessegebieden vrij aan. 'description' vertelt Claude wat jij relevant vindt.
 topics:

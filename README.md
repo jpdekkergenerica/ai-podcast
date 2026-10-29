@@ -7,7 +7,25 @@ Elke ochtend (GitHub Actions) wordt automatisch een podcast gemaakt:
 3. Spreektijd per gebied = som van de scores x `minutes_per_point`. Komt het totaal boven `max_minutes`,
    dan wordt alles evenredig ingekort. Een rustige dag geeft dus een kortere aflevering.
 4. Claude schrijft een Nederlands script met een woordbudget per gebied.
-5. ElevenLabs maakt er audio van; de mp3 komt als GitHub Release, de feed op GitHub Pages.
+5. ElevenLabs maakt er audio van per hoofdstuk; ffmpeg normaliseert naar -16 LUFS / -1 dBTP (128 kbps CBR mono)
+   en ID3-hoofdstukken worden toegevoegd. De mp3 komt als GitHub Release, de feed op GitHub Pages.
+
+## Succescriteria uit `brondata/`
+
+Op basis van het rapport over solo-podcasts past de pijplijn dit toe:
+
+- **Haak binnen ~45 s**, daarna een korte showintro; 2-4 inhoudelijke blokken (`max_topics`); synthese met precies
+  één actieoproep (`call_to_action`) aan het eind.
+- **Stijl:** consequent "je/jij", afwisselende zinslengte, pauzes van 1-2 s vóór kernpunten (`<break>`),
+  levendiger stem via `voice.settings`.
+- **Audio:** -16 LUFS, -1 dBTP, hoogdoorlaat 80 Hz, milde compressie, 128 kbps CBR mono, 44,1 kHz.
+- **Metadata:** titel als concrete vraag zonder showtitel/datum/nummer; eerste 250 tekens van de beschrijving
+  bevatten de kernantwoorden; hoofdstukken < 45 tekens; AI-vermelding en bronnen onderaan.
+- **Cover:** 3000x3000 JPEG (<500 KB), hoog contrast, veilige marge. Eigen ontwerp? Zet het als `assets/cover.jpg`.
+- **Ritme:** vaste publicatietijd (02:30 UTC, dus 03:30/04:30 Nederlandse tijd).
+
+Bewust niet gedaan: luisterersvragen via SpeakPipe (vraagt een menselijke tussenstap), audiograms/nieuwsbrief en
+getimede transcripties. Dit is het eerste wat je kunt toevoegen als de podcast publiek gaat.
 
 ## Eenmalige setup
 
