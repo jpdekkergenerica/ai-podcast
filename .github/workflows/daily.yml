@@ -50,7 +50,14 @@ jobs:
           git config user.name "podcast-bot"
           git config user.email "podcast-bot@users.noreply.github.com"
           git add episodes.json covered.json
-          git diff --cached --quiet || (git commit -m "Aflevering toegevoegd" && git push)
+          if ! git diff --cached --quiet; then
+            git commit -m "Aflevering toegevoegd"
+            # main kan intussen zijn gewijzigd; dan eerst rebasen (bij een conflict wint de bot-versie)
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push && break
+              sleep 5
+            done
+          fi
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
