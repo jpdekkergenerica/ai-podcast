@@ -65,7 +65,8 @@ SAMENVATTING: <maximaal twee volledige zinnen; de eerste 250 tekens noemen direc
 MATERIAAL:
 
 {material}"""
-    raw = ask(prompt, model=cfg["models"]["script"], system=SYSTEM, max_tokens=16000)
+    raw = ask(prompt, model=cfg["models"]["script"], system=SYSTEM, max_tokens=16000,
+               thinking={"type": "between_tools"})  # Sonnet 5.5: geen redeneerblok, anders slokt dat het hele tokenbudget op
     head, _, script = raw.partition("\n---")
     title = summary = ""
     for line in head.splitlines():

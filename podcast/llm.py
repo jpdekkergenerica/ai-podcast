@@ -3,16 +3,18 @@ import anthropic
 _client = None
 
 
-def ask(prompt: str, *, model: str, system: str = "", max_tokens: int = 4000) -> str:
+def ask(prompt: str, *, model: str, system: str = "", max_tokens: int = 4000, thinking: dict | None = None) -> str:
     global _client
     if _client is None:
         _client = anthropic.Anthropic()
+    extra = {"thinking": thinking} if thinking else {}
     for attempt in range(2):
         with _client.messages.stream(
             model=model,
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": prompt}],
+            **extra,
         ) as stream:
             msg = stream.get_final_message()
         text = "".join(b.text for b in msg.content if b.type == "text").strip()

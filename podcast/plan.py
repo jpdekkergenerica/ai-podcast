@@ -26,7 +26,7 @@ dezelfde gebeurtenis, geef dan alleen het beste bericht een hoge score.
 {listing}
 
 Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
-    raw = ask(prompt, model=model, max_tokens=2000)
+    raw = ask(prompt, model=model, max_tokens=4000)
     scores = [0] * len(items)
     try:
         data = json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
