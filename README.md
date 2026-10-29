@@ -41,6 +41,21 @@ Op basis van het rapport over solo-podcasts past de pijplijn dit toe:
 Bewust niet gedaan: luisterersvragen via SpeakPipe (vraagt een menselijke tussenstap), audiograms/nieuwsbrief en
 getimede transcripties. Dit is het eerste wat je kunt toevoegen als de podcast publiek gaat.
 
+## Instellingen aanpassen (lokale pagina)
+
+```bash
+pip install -r requirements-ui.txt
+python -m podcast ui            # opent http://127.0.0.1:8765
+```
+
+Instellingen, onderwerpen (met feed-test), uitspraak, nieuwe aflevering starten en afleveringen verwijderen, alles in
+je browser. De pagina is alleen bereikbaar vanaf je eigen computer. Ze past `config.yaml` aan met behoud van commentaar
+en kan committen en pushen; de workflow gebruikt de instellingen uit GitHub, dus **publiceer** wijzigingen eerst.
+Voor het script-voorbeeld heb je `ANTHROPIC_API_KEY` nodig in de omgeving waarin je de pagina start.
+Onderweg kan het ook via GitHub: bij **Run workflow** kun je een duur in minuten invullen voor één run.
+
+Rooktests: `python -m tests.smoke_build` en `python -m tests.smoke_ui` (vereisen ffmpeg resp. `requirements-ui.txt`).
+
 ## Eenmalige setup
 
 1. Maak een **publieke** GitHub-repo en push deze map (Pages is gratis voor publieke repo's).

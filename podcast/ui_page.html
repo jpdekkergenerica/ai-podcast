@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Podcast-instellingen</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f27; --muted:#667085; --line:#e2e5ea; --accent:#2f6fed; --accent-ink:#fff;
+          --ok:#1a7f4b; --warn:#b54708; --bad:#b42318; --chip:#eef2f8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151b; --card:#1a1f28; --ink:#e8ebf0; --muted:#98a2b3; --line:#2b3340; --accent:#5b8def; --accent-ink:#0b1220;
+            --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; --chip:#232a36; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:5; background:var(--card); border-bottom:1px solid var(--line); }
+  .bar { max-width:980px; margin:0 auto; padding:12px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .bar h1 { font-size:17px; margin:0; flex:1 1 220px; }
+  #status { color:var(--muted); font-size:13px; }
+  #status b { color:var(--warn); }
+  nav { max-width:980px; margin:0 auto; padding:0 16px; display:flex; gap:4px; overflow-x:auto; }
+  nav button { border:0; background:none; color:var(--muted); font:inherit; padding:8px 12px; border-bottom:2px solid transparent; cursor:pointer; }
+  nav button.on { color:var(--ink); border-color:var(--accent); font-weight:600; }
+  main { max-width:980px; margin:0 auto; padding:16px; }
+  section { display:none; } section.on { display:block; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .card h2 { font-size:15px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px 16px; }
+  label { display:block; font-size:13px; color:var(--muted); }
+  label small { display:block; margin-top:3px; font-size:12px; opacity:.85; }
+  input, textarea, select { width:100%; margin-top:4px; padding:8px 10px; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; }
+  textarea { min-height:84px; resize:vertical; font-family:ui-monospace, Menlo, monospace; font-size:13px; }
+  textarea.desc { font-family:inherit; font-size:14px; }
+  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:-1px; }
+  button.b { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  button.b:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  button.danger { color:var(--bad); }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row > .grow { flex:1 1 200px; }
+  .muted { color:var(--muted); font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:99px; background:var(--chip); font-size:12px; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto; max-height:420px; font-size:12px; white-space:pre-wrap; }
+  #toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); max-width:92vw; padding:10px 16px; border-radius:10px;
+           background:var(--ink); color:var(--bg); font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:20; }
+  #toast.show { opacity:1; } #toast.err { background:var(--bad); color:#fff; }
+  .topic .head { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .topic .head input { font-weight:600; margin:0; }
+  .feedtest { margin-top:10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1 id="title">Podcast-instellingen</h1>
+    <span id="status"></span>
+    <button class="b" id="saveBtn">Opslaan</button>
+    <button class="b primary" id="publishBtn">Publiceren</button>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main>
+  <section id="tab-instellingen"></section>
+  <section id="tab-onderwerpen"></section>
+  <section id="tab-uitspraak"></section>
+  <section id="tab-acties"></section>
+</main>
+<div id="toast"></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const FIELDS = [
+  ["Podcast", [
+    ["podcast.title", "Naam van de podcast", "text"],
+    ["podcast.author", "Auteur", "text"],
+    ["podcast.email", "E-mailadres in de feed", "text", "Staat publiek in de feed; Apple gebruikt het voor verificatie."],
+    ["podcast.call_to_action", "Actieoproep aan het einde", "text", "Precies één concrete oproep."],
+    ["podcast.keep_episodes", "Afleveringen in de feed", "number", "Zoveel afleveringen staan als mp3 op de site."],
+  ]],
+  ["Duur", [
+    ["duration.max_minutes", "Maximale duur (minuten)", "number", "De aflevering wordt hiermee gevuld."],
+    ["duration.intro_outro_minutes", "Haak, intro en afsluiting (minuten)", "number", "Wordt van de duur afgetrokken."],
+    ["duration.words_per_minute", "Woorden per minuut", "number", "Spreektempo voor het woordbudget."],
+    ["duration.item_minutes_top", "Tijd per bericht bij score 10 (min)", "number"],
+    ["duration.item_minutes_floor", "Tijd per bericht bij laagste score (min)", "number"],
+    ["duration.max_stretch", "Maximale uitbreiding", "number", "Hooguit zoveel keer uitgebreider bij weinig nieuws."],
+  ]],
+  ["Selectie van nieuws", [
+    ["relevance.lookback_hours", "Terugkijken (uren)", "number"],
+    ["relevance.min_item_score", "Minimale score (0-10)", "number", "Zwakkere berichten komen alleen aan bod om tijd te vullen."],
+    ["relevance.coverage_min_score", "Score voor gegarandeerd aan bod", "number", "Onderwerp met zo'n bericht komt altijd voor."],
+    ["relevance.topic_decay", "Afnemende meerwaarde per extra bericht", "number", "Hoger = tijd eerlijker verdeeld."],
+    ["relevance.max_topics", "Maximaal aantal onderwerpen", "number"],
+    ["relevance.max_items_per_topic", "Maximaal berichten per onderwerp", "number"],
+    ["relevance.max_candidates_per_topic", "Kandidaten per onderwerp", "number"],
+    ["relevance.repeat_days", "Herhaling voorkomen (dagen)", "number"],
+    ["relevance.focus", "Regionale focus", "text", "Nieuws zonder link met deze regio krijgt een lage score."],
+  ]],
+  ["Stem", [
+    ["voice.voice_id", "ElevenLabs voice_id", "text"],
+    ["voice.model_id", "Model", "select", "", ["eleven_multilingual_v2", "eleven_flash_v2_5", "eleven_turbo_v2_5"]],
+    ["voice.settings.stability", "Stabiliteit (0-1)", "number", "Lager = levendiger."],
+    ["voice.settings.similarity_boost", "Gelijkenis (0-1)", "number"],
+    ["voice.settings.style", "Stijl (0-1)", "number"],
+  ]],
+  ["Modellen", [
+    ["models.scoring", "Model voor scoring", "text"],
+    ["models.script", "Model voor het script", "text"],
+  ]],
+];
+
+let state = null, topics = [], pronRows = [], learnedRows = [], dirty = false, tab = "instellingen", feedResults = {};
+
+const $ = (s, el = document) => el.querySelector(s);
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") el.className = v; else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null) el.append(k.nodeType ? k : document.createTextNode(k));
+  return el;
+}
+function getPath(obj, path) { return path.split(".").reduce((o, k) => (o == null ? o : o[k]), obj); }
+function toast(msg, err = false) {
+  const t = $("#toast"); t.textContent = msg; t.className = "show" + (err ? " err" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => (t.className = ""), err ? 7000 : 3500);
+}
+async function api(path, body) {
+  const res = await fetch("/api/" + path, {
+    method: body === undefined ? "GET" : "POST",
+    headers: { "X-Token": TOKEN, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+async function guard(btn, fn) {
+  const old = btn && btn.textContent; if (btn) { btn.disabled = true; btn.textContent = "Bezig…"; }
+  try { return await fn(); } catch (e) { toast(e.message, true); } finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+}
+function markDirty() { dirty = true; renderStatus(); }
+
+function renderStatus() {
+  const g = state.git, parts = [];
+  if (dirty) parts.push("niet opgeslagen wijzigingen");
+  if (g.dirty.length) parts.push(`${g.dirty.length} bestand(en) niet gepubliceerd`);
+  else if (g.unpushed) parts.push(`${g.unpushed} commit(s) niet gepusht`);
+  const s = $("#status"); s.replaceChildren();
+  if (parts.length) s.append(h("b", {}, parts.join(" · "))); else s.append("alles gepubliceerd");
+}
+
+function renderTabs() {
+  const names = { instellingen: "Instellingen", onderwerpen: "Onderwerpen", uitspraak: "Uitspraak", acties: "Acties & afleveringen" };
+  const nav = $("#tabs"); nav.replaceChildren();
+  for (const [id, label] of Object.entries(names)) {
+    nav.append(h("button", { class: id === tab ? "on" : "", onclick: () => { tab = id; renderTabs(); window.scrollTo(0, 0); if (id === "acties") loadRuns(); } }, label));
+    $("#tab-" + id).className = id === tab ? "on" : "";
+  }
+}
+
+function renderSettings() {
+  const root = $("#tab-instellingen"); root.replaceChildren();
+  for (const [group, fields] of FIELDS) {
+    const grid = h("div", { class: "grid" });
+    for (const [path, label, type, hint, options] of fields) {
+      const val = getPath(state.config, path);
+      if (val === undefined) continue;
+      let input;
+      if (type === "select") {
+        const opts = options.includes(val) ? options : [val, ...options];
+        input = h("select", { "data-path": path, onchange: markDirty }, opts.map(o => h("option", { value: o, selected: o === val }, o)));
+      } else {
+        input = h("input", { "data-path": path, type: type === "number" ? "number" : "text", step: "any", value: val, oninput: markDirty });
+      }
+      grid.append(h("label", {}, label, input, hint ? h("small", {}, hint) : null));
+    }
+    root.append(h("div", { class: "card" }, h("h2", {}, group), grid));
+  }
+}
+
+function renderTopics() {
+  const root = $("#tab-onderwerpen"); root.replaceChildren();
+  root.append(h("p", { class: "muted" }, "Een onderwerp mag elke dag terugkomen, maar hetzelfde nieuws niet. Trefwoorden zijn reguliere expressies (hoofdletterongevoelig, bijvoorbeeld \\bdaklo); leeg = alle berichten."));
+  topics.forEach((t, i) => {
+    const card = h("div", { class: "card topic" });
+    const name = h("input", { value: t.name, placeholder: "Naam van het onderwerp", oninput: e => { t.name = e.target.value; markDirty(); } });
+    card.append(h("div", { class: "head" }, name,
+      h("button", { class: "b", title: "Omhoog", disabled: i === 0, onclick: () => { [topics[i - 1], topics[i]] = [topics[i], topics[i - 1]]; markDirty(); renderTopics(); } }, "↑"),
+      h("button", { class: "b", title: "Omlaag", disabled: i === topics.length - 1, onclick: () => { [topics[i + 1], topics[i]] = [topics[i], topics[i + 1]]; markDirty(); renderTopics(); } }, "↓"),
+      h("button", { class: "b danger", onclick: () => { if (confirm(`Onderwerp "${t.name}" verwijderen?`)) { topics.splice(i, 1); markDirty(); renderTopics(); } } }, "Verwijder")));
+    card.append(h("label", {}, "Omschrijving (wat vind jij hierin interessant?)",
+      h("textarea", { class: "desc", oninput: e => { t.description = e.target.value; markDirty(); } }, t.description || "")));
+    card.append(h("div", { class: "grid", style: "margin-top:12px" },
+      h("label", {}, "Feeds (één per regel)", h("textarea", { oninput: e => { t.feeds = e.target.value.split("\n"); markDirty(); } }, (t.feeds || []).join("\n"))),
+      h("label", {}, "Trefwoorden (één per regel, regex)", h("textarea", { oninput: e => { t.keywords = e.target.value.split("\n"); markDirty(); } }, (t.keywords || []).join("\n")))));
+    const out = h("div", { class: "feedtest" });
+    const btn = h("button", { class: "b" }, "Test feeds");
+    btn.addEventListener("click", () => guard(btn, async () => {
+      const lookback = parseFloat($('[data-path="relevance.lookback_hours"]').value) || 72;
+      feedResults[i] = await api("test-feeds", { topic: t, lookback_hours: lookback }); renderFeedResults(out, i);
+    }));
+    card.append(h("div", { class: "row", style: "margin-top:10px" }, btn, h("span", { class: "muted" }, "Laat zien hoeveel berichten elke feed nu oplevert (zonder Claude, gratis).")), out);
+    if (feedResults[i]) renderFeedResults(out, i);
+    root.append(card);
+  });
+  root.append(h("button", { class: "b", onclick: () => { topics.push({ name: "Nieuw onderwerp", description: "", keywords: [], feeds: [""] }); markDirty(); renderTopics(); } }, "+ Onderwerp toevoegen"));
+}
+function renderFeedResults(el, i) {
+  const rows = feedResults[i].map(r => h("tr", {},
+    h("td", {}, r.url.replace(/^https?:\/\//, "").slice(0, 46)),
+    h("td", { class: r.error ? "bad" : "" }, r.error ? r.error : `${r.total}`),
+    h("td", {}, r.error ? "" : `${r.recent}`),
+    h("td", { class: r.matches ? "ok" : "warn" }, r.error ? "" : `${r.matches}`),
+    h("td", { class: "muted" }, (r.samples || []).join(" · "))));
+  const total = feedResults[i].reduce((a, r) => a + (r.matches || 0), 0);
+  el.replaceChildren(h("table", {}, h("tr", {}, h("th", {}, "Feed"), h("th", {}, "Berichten"), h("th", {}, "Recent"), h("th", {}, "Passend"), h("th", {}, "Voorbeelden")), rows),
+    h("p", { class: total ? "muted" : "warn" }, total ? `${total} passende berichten.` : "Geen passende berichten: dit onderwerp blijft nu leeg."));
+}
+
+function mapEditor(title, hint, rows) {
+  const card = h("div", { class: "card" }, h("h2", {}, title), h("p", { class: "muted" }, hint));
+  const table = h("table", {}, h("tr", {}, h("th", {}, "Term (exact)"), h("th", {}, "Gesproken als"), h("th", {})));
+  rows.forEach((row, i) => table.append(h("tr", {},
+    h("td", {}, h("input", { value: row[0], oninput: e => { row[0] = e.target.value; markDirty(); } })),
+    h("td", {}, h("input", { value: row[1], oninput: e => { row[1] = e.target.value; markDirty(); } })),
+    h("td", {}, h("button", { class: "b danger", title: "Verwijderen", onclick: () => { rows.splice(i, 1); markDirty(); renderPron(); } }, "×")))));
+  card.append(table, h("button", { class: "b", style: "margin-top:10px", onclick: () => { rows.push(["", ""]); markDirty(); renderPron(); } }, "+ Toevoegen"));
+  return card;
+}
+function renderPron() {
+  const root = $("#tab-uitspraak"); root.replaceChildren();
+  root.append(
+    mapEditor("Vaste uitspraken", "Hebben voorrang op alles wat de app zelf leert. Zet hier wat de stem fout blijft uitspreken.", pronRows),
+    mapEditor("Door de app geleerd", "Per aflevering bepaalt Claude welke termen de stem fout leest; hier kun je foute regels aanpassen of verwijderen.", learnedRows));
+}
+
+async function loadRuns() {
+  const box = $("#runs"); if (!box) return;
+  if (!state.has_gh) { box.replaceChildren(h("p", { class: "muted" }, "De gh-opdracht (GitHub CLI) is niet gevonden.")); return; }
+  try {
+    const runs = await api("runs");
+    box.replaceChildren(h("table", {}, h("tr", {}, h("th", {}, "Gestart"), h("th", {}, "Soort"), h("th", {}, "Status")),
+      runs.map(r => h("tr", {}, h("td", {}, new Date(r.createdAt).toLocaleString("nl-NL")), h("td", {}, r.event === "schedule" ? "gepland" : "handmatig"),
+        h("td", { class: r.conclusion === "success" ? "ok" : r.conclusion === "failure" ? "bad" : "warn" },
+          h("a", { href: r.url, target: "_blank", rel: "noopener" }, r.status === "completed" ? r.conclusion : r.status))))));
+    clearTimeout(loadRuns.t); if (tab === "acties" && runs.some(r => r.status !== "completed")) loadRuns.t = setTimeout(loadRuns, 15000);
+  } catch (e) { box.replaceChildren(h("p", { class: "bad" }, e.message)); }
+}
+
+function renderActions() {
+  const root = $("#tab-acties"); root.replaceChildren();
+  const minutes = h("input", { type: "number", step: "any", placeholder: "leeg = instelling", style: "max-width:170px" });
+  const previewOut = h("pre", { style: "display:none" });
+  const act = (label, fn, cls = "b") => { const b = h("button", { class: cls }, label); b.addEventListener("click", () => guard(b, fn)); return b; };
+  root.append(h("div", { class: "card" }, h("h2", {}, "Acties"),
+    h("p", { class: "muted" }, "De workflow draait in GitHub en gebruikt de instellingen die daar staan. Publiceer wijzigingen dus eerst."),
+    h("div", { class: "row" },
+      act("Script-voorbeeld (gratis)", async () => { previewOut.style.display = ""; previewOut.textContent = "Bezig… dit duurt een paar minuten."; previewOut.textContent = (await api("preview", {})).output; }),
+      h("span", { class: "muted" }, "Maakt alleen het script, zonder ElevenLabs. Vraagt ANTHROPIC_API_KEY in de omgeving waarin deze pagina draait.")),
+    previewOut,
+    h("div", { class: "row", style: "margin-top:14px" },
+      h("label", { class: "grow", style: "max-width:200px" }, "Duur voor deze run (min)", minutes),
+      act("Nieuwe aflevering starten", async () => { toast((await api("run", { max_minutes: minutes.value })).message); loadRuns(); }, "b primary"),
+      act("Alleen feed bouwen", async () => { toast((await api("run", { feed_only: true })).message); loadRuns(); })),
+    h("p", { class: "muted" }, "Een nieuwe aflevering kost ElevenLabs-tegoed. “Alleen feed bouwen” is gratis.")));
+  root.append(h("div", { class: "card" }, h("h2", {}, "Laatste runs"), h("div", { id: "runs" }, "Laden…"),
+    h("div", { style: "margin-top:10px" }, act("Vernieuwen", async () => loadRuns()))));
+  const eps = state.episodes.map(e => h("tr", {}, h("td", {}, e.date), h("td", {}, e.title), h("td", {}, `${(e.duration / 60).toFixed(1)} min`),
+    h("td", {}, act("Verwijderen", async () => {
+      if (!confirm(`"${e.title}" definitief verwijderen? De release met de mp3 wordt gewist, de wijziging wordt gepusht en de feed opnieuw gepubliceerd.`)) return;
+      toast((await api("delete-episode", { guid: e.guid })).message); await refresh();
+    }, "b danger"))));
+  root.append(h("div", { class: "card" }, h("h2", {}, "Afleveringen in de feed"), eps.length ? h("table", {}, h("tr", {}, h("th", {}, "Datum"), h("th", {}, "Titel"), h("th", {}, "Duur"), h("th", {})), eps) : h("p", { class: "muted" }, "Nog geen afleveringen.")));
+}
+
+function collect() {
+  const values = {};
+  document.querySelectorAll("[data-path]").forEach(el => (values[el.dataset.path] = el.value));
+  return { values, topics: topics.map(t => ({ ...t, feeds: (t.feeds || []).filter(f => f.trim()), keywords: (t.keywords || []).filter(k => k.trim()) })),
+           pronunciation: Object.fromEntries(pronRows.filter(([k, v]) => k.trim() && v.trim())),
+           learned: Object.fromEntries(learnedRows.filter(([k, v]) => k.trim() && v.trim())) };
+}
+async function save() {
+  const r = await api("save", collect());
+  dirty = false; await refresh();
+  toast(r.changed.length ? "Opgeslagen: " + r.changed.join(", ") : "Niets gewijzigd");
+}
+async function refresh() {
+  state = await api("state");
+  topics = JSON.parse(JSON.stringify(state.config.topics));
+  pronRows = Object.entries(state.config.pronunciation || {}).map(e => [...e]);
+  learnedRows = Object.entries(state.learned).map(e => [...e]);
+  $("#title").textContent = `Instellingen — ${state.config.podcast.title}`; document.title = `Instellingen — ${state.config.podcast.title}`;
+  renderSettings(); renderTopics(); renderPron(); renderActions(); renderTabs(); renderStatus(); if (tab === "acties") loadRuns();
+}
+
+$("#saveBtn").addEventListener("click", e => guard(e.currentTarget, save));
+$("#publishBtn").addEventListener("click", e => guard(e.currentTarget, async () => {
+  if (dirty) await save();
+  const msg = prompt("Korte omschrijving van de wijziging:", "Instellingen aangepast"); if (msg === null) return;
+  const r = await api("publish", { message: msg }); toast(r.message); await refresh();
+}));
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+refresh().catch(e => toast(e.message, true));
+</script>
+</body>
+</html>

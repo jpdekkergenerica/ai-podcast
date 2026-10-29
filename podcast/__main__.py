@@ -1,4 +1,5 @@
 import argparse
+import os
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -75,13 +76,22 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(prog="podcast")
-    ap.add_argument("command", choices=["build", "feed"])
+    ap.add_argument("command", choices=["build", "feed", "ui"])
+    ap.add_argument("--port", type=int, default=8765, help="poort voor de instellingenpagina (ui)")
+    ap.add_argument("--no-browser", action="store_true", help="de instellingenpagina niet automatisch openen (ui)")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--out", default="out")
     ap.add_argument("--no-tts", action="store_true", help="alleen het script maken (geen ElevenLabs-kosten, geen feed)")
     args = ap.parse_args()
 
+    if args.command == "ui":
+        from .ui import serve  # alleen nodig voor de pagina (ruamel.yaml)
+        return serve(args.port, open_browser=not args.no_browser)
+
     cfg = yaml.safe_load(Path(args.config).read_text())
+    if os.environ.get("MAX_MINUTES", "").strip():  # override vanuit de workflow-invoer
+        cfg["duration"]["max_minutes"] = float(os.environ["MAX_MINUTES"])
+        print(f"Duur overschreven: {cfg['duration']['max_minutes']} minuten")
     out = Path(args.out)
     if args.command == "build":
         build(cfg, out, args.no_tts)

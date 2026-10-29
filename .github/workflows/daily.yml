@@ -9,6 +9,10 @@ on:
         description: "Alleen de feed opnieuw bouwen en publiceren (geen nieuwe aflevering)"
         type: boolean
         default: false
+      max_minutes:
+        description: "Maximale duur in minuten voor deze run (leeg = instelling uit config.yaml)"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -38,6 +42,7 @@ jobs:
       - name: Aflevering maken
         if: ${{ !inputs.feed_only }}
         env:
+          MAX_MINUTES: ${{ inputs.max_minutes }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: python -m podcast build
