@@ -1,5 +1,7 @@
 import json
 from dataclasses import dataclass, field
+from datetime import date, timedelta
+from pathlib import Path
 
 from .fetch import Item, fetch_topic
 from .llm import ask
@@ -13,7 +15,7 @@ class TopicPlan:
     minutes: float = 0.0
 
 
-def score_items(topic: dict, items: list[Item], model: str) -> list[int]:
+def score_items(topic: dict, items: list[Item], model: str, focus: str) -> list[int]:
     listing = "\n".join(f"{i}. [{it.source}] {it.title} — {it.summary[:300]}" for i, it in enumerate(items))
     prompt = f"""Interessegebied: {topic['name']}
 Wat de luisteraar hierin interessant vindt: {topic['description']}
@@ -24,6 +26,8 @@ Gebruik een absolute schaal, zodat scores tussen interessegebieden vergelijkbaar
 5-6 = interessant maar niet urgent; 3-4 = marginaal; 0-2 = irrelevant, clickbait of reclame.
 Wees streng: op een gewone dag zijn er weinig berichten met 8 of hoger. Gaan meerdere berichten over
 dezelfde gebeurtenis, geef dan alleen het beste bericht een hoge score.
+Regionale focus: {focus}. Een bericht zonder duidelijke link met {focus} (geen Nederlandse organisatie,
+bedrijf, beleid, regio of gevolgen voor mensen in Nederland) krijgt maximaal 3.
 
 {listing}
 
@@ -38,6 +42,60 @@ Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
     except (ValueError, KeyError, TypeError):
         print(f"Waarschuwing: kon scores voor '{topic['name']}' niet lezen, onderwerp overgeslagen")
     return scores
+
+
+COVERED = Path("covered.json")
+
+
+def load_covered(today: date, days: int) -> list[dict]:
+    """Berichten uit eerdere afleveringen (laatste `days` dagen, zonder vandaag), om herhaling te voorkomen."""
+    if not COVERED.exists():
+        return []
+    since = (today - timedelta(days=days)).isoformat()
+    return [c for c in json.loads(COVERED.read_text()) if since <= c["date"] < today.isoformat()]
+
+
+def save_covered(today: date, plans: list["TopicPlan"], keep_days: int = 14) -> None:
+    old = json.loads(COVERED.read_text()) if COVERED.exists() else []
+    since = (today - timedelta(days=keep_days)).isoformat()
+    kept = [c for c in old if c["date"] >= since and c["date"] != today.isoformat()]
+    kept += [{"date": today.isoformat(), "topic": p.name, "title": item.title, "link": item.link}
+             for p in plans for item, _ in p.items]
+    COVERED.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n")
+
+
+def drop_repeats(pool: list[tuple[Item, int]], covered: list[dict], model: str) -> list[tuple[Item, int]]:
+    """Schrapt berichten die over hetzelfde nieuws gaan als een ander bericht (ook van een andere bron) of
+    als iets wat de afgelopen dagen al is besproken. Een onderwerp mag wel terugkomen, met nieuw nieuws."""
+    old_links = {c["link"] for c in covered}
+    pool = [(it, s) for it, s in pool if it.link not in old_links]
+    if len(pool) < 2 and not covered:
+        return pool
+    listing = "\n".join(f"{i}. [{it.topic}, score {s}] {it.title} — {it.summary[:150]}"
+                        for i, (it, s) in enumerate(pool))
+    old = "\n".join(f"- {c['title']}" for c in covered[-80:]) or "(niets)"
+    prompt = f"""Je helpt een dagelijkse nieuwspodcast herhaling te voorkomen.
+Geef de nummers van de kandidaten die geschrapt moeten worden, omdat ze:
+1. over precies dezelfde gebeurtenis of hetzelfde nieuws gaan als een ander kandidaat, ook als de bron of
+   de formulering anders is (bewaar alleen het bericht met de hoogste score; bij gelijke score het laagste nummer), of
+2. dezelfde gebeurtenis opnieuw melden die in de lijst AL BESPROKEN staat, zonder wezenlijk nieuwe feiten of ontwikkeling.
+Het thema van een bericht mag terugkomen; het gaat om hetzelfde nieuws. Een vervolg met nieuwe feiten schrap je niet.
+
+AL BESPROKEN:
+{old}
+
+KANDIDATEN:
+{listing}
+
+Antwoord uitsluitend met JSON: {{"schrappen": [3, 7]}}"""
+    raw = ask(prompt, model=model, max_tokens=4000)
+    try:
+        drop = {int(i) for i in json.loads(raw[raw.find("{"): raw.rfind("}") + 1])["schrappen"]}
+    except (ValueError, KeyError, TypeError):
+        print("Waarschuwing: kon de herhalingscontrole niet lezen, niets geschrapt")
+        return pool
+    print(f"Herhaling geschrapt: {len(drop & set(range(len(pool))))} van {len(pool)} berichten")
+    return [p for i, p in enumerate(pool) if i not in drop]
 
 
 def minutes_for(score: int, dur: dict, floor: int) -> float:
@@ -104,14 +162,14 @@ def select(pool: list[tuple[Item, int]], budget: float, cfg: dict) -> list[Topic
     return sorted(plans.values(), key=lambda p: -p.minutes)
 
 
-def plan_episode(cfg: dict) -> list[TopicPlan]:
+def plan_episode(cfg: dict, today: date) -> list[TopicPlan]:
     rel, dur = cfg["relevance"], cfg["duration"]
     pool: list[tuple[Item, int]] = []
     for topic in cfg["topics"]:
         items = fetch_topic(topic, rel["lookback_hours"], rel["max_candidates_per_topic"])
         if not items:
             continue
-        scores = score_items(topic, items, cfg["models"]["scoring"])
+        scores = score_items(topic, items, cfg["models"]["scoring"], rel["focus"])
         usable = [(it, s) for it, s in zip(items, scores) if s >= rel["min_item_score"]]
         print(f"{topic['name']}: {len(items)} berichten, {len(usable)} bruikbaar, "
               f"hoogste score {max(scores)}")
@@ -125,6 +183,7 @@ def plan_episode(cfg: dict) -> list[TopicPlan]:
         if key not in seen:
             seen.add(key)
             unique.append((item, score))
+    unique = drop_repeats(unique, load_covered(today, rel["repeat_days"]), cfg["models"]["scoring"])
 
     budget = dur["max_minutes"] - dur["intro_outro_minutes"]  # ruimte voor haak, intro en synthese
     plans = select(unique, budget, cfg)

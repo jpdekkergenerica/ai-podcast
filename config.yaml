@@ -16,12 +16,14 @@ duration:
   words_per_minute: 150    # spreektempo voor het woordbudget
 
 relevance:
-  lookback_hours: 36       # alleen berichten van de afgelopen X uur
+  lookback_hours: 72       # alleen berichten van de afgelopen X uur (ruim, voor nicheonderwerpen; herhaling wordt apart tegengehouden)
   min_item_score: 4        # nooit onder deze score; zwakkere berichten komen alleen aan bod als er tijd te vullen is
   coverage_min_score: 6    # een onderwerp met een bericht van deze score of hoger komt altijd aan bod
   topic_decay: 0.7         # extra bericht van hetzelfde onderwerp telt zoveel punten minder (verdeelt de tijd eerlijker)
-  max_topics: 4            # 2 tot 4 inhoudelijke blokken per aflevering
+  max_topics: 5            # 2 tot 4 inhoudelijke blokken per aflevering
   max_items_per_topic: 8
+  focus: "Nederland"        # nieuws zonder duidelijke link met deze regio krijgt een lage score
+  repeat_days: 7           # nieuws dat de afgelopen X dagen al is besproken komt niet terug (ook niet via een andere bron)
   max_candidates_per_topic: 25
 
 models:
@@ -37,29 +39,63 @@ voice:
     style: 0.3
     use_speaker_boost: true
 
-# Pas de interessegebieden vrij aan. 'description' vertelt Claude wat jij relevant vindt.
+# Een onderwerp mag terugkeren; hetzelfde nieuws niet (ook niet via een andere bron).
+# 'keywords' (regex, hoofdletterongevoelig) filtert de feeds op titel + samenvatting; zonder keywords komt alles mee.
 topics:
-  - name: "De midterms in Amerika"
-    description: "De Amerikaanse tussentijdse verkiezingen (Congres, Senaat, gouverneurs): peilingen, spannende races, uitslagen, campagnes en de gevolgen voor het beleid van Trump."
+  - name: "Dakloosheid en maatschappelijke opvang"
+    description: "Ontwikkelingen rond dakloosheid, buitenslapers, Housing First, straatzorg, ETHOS-tellingen en vernieuwende vormen van opvang en begeleiding in Nederland. Extra aandacht voor Groningen en Noord-Nederland."
+    keywords: ["\\bdaklo", "buitenslaper", "maatschappelijke opvang", "nachtopvang", "housing first", "straatzorg", "thuisloos", "ethos", "zwerfjongere", "onderdak"]
     feeds:
-      - https://feeds.npr.org/1014/rss.xml
-      - https://www.theguardian.com/us-news/us-politics/rss
-      - https://rss.politico.com/politics-news.xml
-      - https://feeds.nos.nl/nosnieuwsbuitenland
-  - name: "AI-nieuws"
-    description: "Het belangrijkste algemene AI-nieuws: nieuwe modellen, doorbraken, grote bedrijven (Anthropic, OpenAI, Google, Meta), regelgeving, investeringen en maatschappelijke impact."
+      - https://feeds.nos.nl/nosnieuwsbinnenland
+      - https://www.nu.nl/rss/Algemeen
+      - https://www.ad.nl/rss.xml
+      - https://www.trouw.nl/rss.xml
+      - https://www.volkskrant.nl/voorpagina/rss.xml
+      - https://www.rtvnoord.nl/rss/nieuws.xml
+      - https://www.rtvdrenthe.nl/rss/index.xml
+      - https://www.omropfryslan.nl/rss/nieuws
+      - https://www.socialevraagstukken.nl/feed/
+      - https://www.zorgwelzijn.nl/feed/
+      - https://www.trimbos.nl/rss
+  - name: "Transactionele analyse, NLP en systemisch werken"
+    description: "Nieuwe inzichten en praktijkvoorbeelden uit Nederland over transactionele analyse (TA), NLP, familieopstellingen, systemisch coachen, gedragspatronen, hechting en persoonlijke ontwikkeling. Aandacht voor wetenschappelijke onderbouwing."
+    keywords: ["transactionele analyse", "\\bNLP\\b", "neurolinguïstisch", "familieopstelling", "opstelling", "systemisch", "hechting", "gedragspatro", "\\bcoach", "persoonlijke ontwikkeling", "psychotherap", "trauma", "zelfinzicht"]
     feeds:
-      - https://techcrunch.com/category/artificial-intelligence/feed/
-      - https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+      - https://www.psychologiemagazine.nl/feed/
+      - https://www.scientias.nl/feed/
+      - https://www.trouw.nl/rss.xml
+      - https://www.volkskrant.nl/voorpagina/rss.xml
+      - https://www.nu.nl/rss/Algemeen
+      - https://www.socialevraagstukken.nl/feed/
+      - https://www.trimbos.nl/rss
+  - name: "ASML, AI-investeringen en de aandelenmarkt"
+    description: "Actueel nieuws over ASML, Nvidia, de chipindustrie, beurskoersen (ook de AEX), investeringskansen, economische risico's en een mogelijke AI-bubbel, met aandacht voor wat het betekent voor Nederland en Nederlandse beleggers."
+    keywords: ["\\bASML", "nvidia", "\\bchip", "halfgeleider", "semiconductor", "\\bTSMC", "\\bAEX\\b", "beurs", "aandel", "koers", "bubbel", "AI-invest"]
+    feeds:
+      - https://feeds.nos.nl/nosnieuwseconomie
+      - https://www.nu.nl/rss/Economie
+      - https://www.telegraaf.nl/financieel/rss
+      - https://bits-chips.com/feed/
       - https://tweakers.net/feeds/nieuws.xml
-  - name: "Nieuwe AI-toepassingen"
-    description: "Spraakmakende, net gelanceerde AI-producten, apps en tools die veel aandacht krijgen of echt iets nieuws kunnen. Geen kleine updates of vage aankondigingen."
+  - name: "Gezondheidsverschillen en bestaanszekerheid in Noord-Nederland"
+    description: "Ontwikkelingen rond armoede, schulden, kansengelijkheid, preventie en gezondheid in Nederland. Met aandacht voor het AZWA, regionale samenwerking en concrete initiatieven in Fryslân, Groningen en Drenthe."
+    keywords: ["armoede", "schuld", "gezondheidsverschil", "kansengelijk", "preventie", "\\bAZWA", "bestaanszekerheid", "voedselbank", "bijstand", "toeslagen", "levensverwachting", "\\bGGD", "sociaal domein", "welzijn", "leefstijl"]
     feeds:
-      - https://www.producthunt.com/feed?category=artificial-intelligence
-      - https://hnrss.org/show?q=AI
-      - https://techcrunch.com/category/artificial-intelligence/feed/
-  - name: "Nederlandse politiek"
-    description: "Landelijke politiek in Nederland: kabinet, Tweede Kamer, coalitie en oppositie, wetgeving en politieke ophef."
+      - https://www.rtvnoord.nl/rss/nieuws.xml
+      - https://www.rtvdrenthe.nl/rss/index.xml
+      - https://www.omropfryslan.nl/rss/nieuws
+      - https://feeds.nos.nl/nosnieuwsbinnenland
+      - https://www.nu.nl/rss/Algemeen
+      - https://www.zorgvisie.nl/feed/
+      - https://www.skipr.nl/rss/
+      - https://www.zorgwelzijn.nl/feed/
+      - https://www.socialevraagstukken.nl/feed/
+  - name: "AI-toepassingen voor werk en dagelijks leven"
+    description: "Nieuwe AI-tools en technologische ontwikkelingen die in Nederland beschikbaar of relevant zijn, vooral toepassingen voor projectleiding, onderzoek, beleidsontwikkeling, coaching en persoonlijke productiviteit."
+    keywords: ["\\bAI\\b", "\\bA\\.I\\.", "kunstmatige intelligentie", "chatgpt", "claude", "copilot", "gemini", "\\bGPT", "\\bLLM", "taalmodel", "AI-agent"]
     feeds:
-      - https://feeds.nos.nl/nosnieuwspolitiek
-      - https://www.nu.nl/rss/Politiek
+      - https://tweakers.net/feeds/nieuws.xml
+      - https://www.computable.nl/feed/
+      - https://www.emerce.nl/rss
+      - https://bits-chips.com/feed/
+      - https://www.nu.nl/rss/Tech

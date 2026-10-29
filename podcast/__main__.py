@@ -7,7 +7,7 @@ import yaml
 
 from .audio import master, seconds_for, tag_chapters
 from .feed import save_episode, write_site
-from .plan import TopicPlan, plan_episode
+from .plan import TopicPlan, plan_episode, save_covered
 from .script import split_chapters, write_script
 from .tts import synthesize
 
@@ -25,7 +25,7 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     out.mkdir(parents=True, exist_ok=True)
     now = datetime.now(ZoneInfo("Europe/Amsterdam"))
     today = now.date()
-    plans = plan_episode(cfg)
+    plans = plan_episode(cfg, today)
     if not plans:
         print("Geen relevant nieuws vandaag, geen aflevering.")
         return
@@ -62,6 +62,7 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
         "size": mp3.stat().st_size,
         "duration": duration,
     })
+    save_covered(today, plans)
     (out / "tag.txt").write_text(f"ep-{today.isoformat()}")
 
 

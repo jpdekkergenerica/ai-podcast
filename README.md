@@ -12,6 +12,10 @@ Elke ochtend (GitHub Actions) wordt automatisch een podcast gemaakt:
    steeds iets minder zwaar (`topic_decay`), zodat één groot onderwerp de rest niet verdringt. Dubbele berichten tussen
    onderwerpen worden eruit gehaald. Is er te weinig nieuws, dan worden de berichten hooguit `max_stretch` keer
    uitgebreider behandeld en blijft de aflevering daarna korter.
+   **Geen herhaling:** een onderwerp mag elke dag terugkomen, maar hetzelfde nieuws niet. `covered.json` onthoudt
+   wat de laatste dagen is besproken; een Claude-controle schrapt kandidaten die over dezelfde gebeurtenis gaan
+   als een ander bericht (ook van een andere bron) of als iets dat al is besproken, tenzij er nieuwe feiten zijn.
+   Nederlandse focus: berichten zonder duidelijke link met Nederland krijgen een lage score (`relevance.focus`).
 4. Claude schrijft een Nederlands script met een woordbudget per gebied.
 5. ElevenLabs maakt er audio van per hoofdstuk; ffmpeg normaliseert naar -16 LUFS / -1 dBTP (128 kbps CBR mono)
    en ID3-hoofdstukken worden toegevoegd. De mp3 komt als GitHub Release, de feed op GitHub Pages.

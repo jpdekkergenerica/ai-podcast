@@ -24,6 +24,8 @@ def _clean(s: str) -> str:
 
 def fetch_topic(topic: dict, lookback_hours: int, limit: int) -> list[Item]:
     cutoff = time.time() - lookback_hours * 3600
+    keywords = topic.get("keywords")
+    pattern = re.compile("|".join(keywords), re.I) if keywords else None  # regex-fragmenten, bijv. "\\bdaklo"
     seen: set[str] = set()
     items: list[Item] = []
     for url in topic["feeds"]:
@@ -35,8 +37,11 @@ def fetch_topic(topic: dict, lookback_hours: int, limit: int) -> list[Item]:
                 continue
             link = e.get("link", "")
             title = _clean(e.get("title", ""))
+            summary = _clean(e.get("summary", ""))
             if not title or link in seen:
                 continue
+            if pattern and not pattern.search(f"{title} {summary}"):
+                continue
             seen.add(link)
-            items.append(Item(topic["name"], title, _clean(e.get("summary", "")), link, source))
+            items.append(Item(topic["name"], title, summary, link, source))
     return items[:limit]
