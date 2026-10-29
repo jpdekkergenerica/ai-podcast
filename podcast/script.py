@@ -54,7 +54,7 @@ SAMENVATTING: <één of twee zinnen voor in de podcast-app>
 MATERIAAL:
 
 {material}"""
-    raw = ask(prompt, model=cfg["models"]["script"], system=SYSTEM, max_tokens=8000)
+    raw = ask(prompt, model=cfg["models"]["script"], system=SYSTEM, max_tokens=16000)
     head, _, script = raw.partition("\n---")
     title = summary = ""
     for line in head.splitlines():
