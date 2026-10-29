@@ -2,7 +2,7 @@ podcast:
   title: "Mijn Dagelijkse Briefing"
   description: "Elke ochtend een persoonlijke, automatisch samengestelde nieuwspodcast over mijn interessegebieden."
   author: "JP"
-  email: "jouw@email.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
+  email: "j.p.dekker@generica.nl"            # Apple controleert dit adres bij het aanmelden; het staat publiek in de feed
   language: "nl"
   repository: "jpdekkergenerica/ai-podcast"      # alleen voor lokaal draaien; in GitHub Actions wordt dit automatisch gevuld
 
@@ -22,7 +22,7 @@ models:
   script: "claude-sonnet-5-5"
 
 voice:
-  voice_id: "pNInz6obpgDQGcFmaJgB"   # vervang door een stem uit jouw ElevenLabs-bibliotheek
+  voice_id: "dLPO5AsXc3FZDbTh1IKa"   # vervang door een stem uit jouw ElevenLabs-bibliotheek
   model_id: "eleven_multilingual_v2" # "eleven_flash_v2_5" is ~2x goedkoper, iets minder natuurlijk
 
 # Pas de interessegebieden vrij aan. 'description' vertelt Claude wat jij relevant vindt.
