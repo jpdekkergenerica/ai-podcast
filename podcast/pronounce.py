@@ -50,7 +50,7 @@ def detect(text: str, known: dict[str, str], model: str) -> dict[str, str]:
         return {}
     return {k: v for k, v in data.items()
             if isinstance(k, str) and isinstance(v, str) and k.strip() and v.strip()
-            and k != v and len(k) <= 40 and k in text and k not in known}
+            and k.lower() != v.lower() and len(k) <= 40 and k in text and k not in known}
 
 
 def apply(text: str, mapping: dict[str, str]) -> str:

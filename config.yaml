@@ -45,6 +45,7 @@ voice:
 pronunciation:
   ASML: "aa-es-em-el"
   AEX: "aa-ee-iks"
+  Nynke: "Nienke"       # de naam van de podcast
   NOS: "Nos"           # wordt als woord uitgesproken, niet letter voor letter
 
 # Een onderwerp mag terugkeren; hetzelfde nieuws niet (ook niet via een andere bron).
