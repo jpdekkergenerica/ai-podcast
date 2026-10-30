@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-from .llm import ask
+from .llm import ask_json
 
 STORE = Path("pronunciation.json")
 
@@ -49,13 +49,9 @@ def save_learned(learned: dict[str, str]) -> None:
 def detect(text: str, known: dict[str, str], model: str) -> dict[str, str]:
     """Vraagt Claude welke termen in de tekst een Nederlandse stem waarschijnlijk fout uitspreekt."""
     prompt = PROMPT.format(known=", ".join(sorted(known)) or "(geen)", text=text)
-    raw = ask(prompt, model=model, max_tokens=4000, thinking={"type": "between_tools"})
-    try:
-        data = json.loads(raw[raw.find("{"): raw.rfind("}") + 1])["uitspraak"]
-    except (ValueError, KeyError, TypeError):
-        print("Waarschuwing: kon de uitspraaklijst niet lezen, geen uitspraakcorrecties toegepast")
-        return {}
-    return {k: v for k, v in data.items()
+    data = ask_json(prompt, model=model, max_tokens=4000, thinking={"type": "between_tools"},
+                    required="uitspraak", kind=dict)
+    return {k: v for k, v in data["uitspraak"].items()
             if isinstance(k, str) and isinstance(v, str) and k.strip() and v.strip()
             and k != v and not (k.lower() == v.lower() and not k.isupper()) and re.search(r"[A-Z0-9]", k) and len(k) <= 40 and k in text and k not in known}
 

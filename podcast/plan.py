@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from .fetch import Item, fetch_topic
-from .llm import ask
+from .llm import ask_json
 
 
 @dataclass
@@ -15,7 +15,7 @@ class TopicPlan:
     minutes: float = 0.0
 
 
-def score_items(topic: dict, items: list[Item], model: str, focus: str) -> list[int]:
+def score_items(topic: dict, items: list[Item], model: str, focus: str) -> list[int | None]:
     listing = "\n".join(f"{i}. [{it.source}] {it.title} — {it.summary[:300]}" for i, it in enumerate(items))
     prompt = f"""Interessegebied: {topic['name']}
 Wat de luisteraar hierin interessant vindt: {topic['description']}
@@ -32,15 +32,25 @@ bedrijf, beleid, regio of gevolgen voor mensen in Nederland) krijgt maximaal 3.
 {listing}
 
 Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
-    raw = ask(prompt, model=model, max_tokens=4000)
-    scores = [0] * len(items)
-    try:
-        data = json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
-        for row in data["scores"]:
-            if 0 <= row["i"] < len(items):
-                scores[row["i"]] = max(0, min(10, int(row["score"])))
-    except (ValueError, KeyError, TypeError):
-        print(f"Waarschuwing: kon scores voor '{topic['name']}' niet lezen, onderwerp overgeslagen")
+    data = ask_json(prompt, model=model, max_tokens=4000, required="scores", kind=list)
+    scores: list[int | None] = [None] * len(items)
+    for row in data["scores"]:
+        if not isinstance(row, dict):
+            continue
+        try:
+            i, score = int(row["i"]), int(row["score"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if isinstance(row["i"], bool) or isinstance(row["score"], bool):
+            continue
+        if 0 <= i < len(items):
+            scores[i] = max(0, min(10, score))
+    if items and not any(s is not None for s in scores):
+        raise RuntimeError(f"geen leesbare scores voor '{topic['name']}' ({len(items)} berichten)")
+    missing = sum(s is None for s in scores)
+    if missing:
+        print(f"Waarschuwing: {missing} van {len(items)} berichten zonder score voor '{topic['name']}', "
+              "die doen niet mee")
     return scores
 
 
@@ -89,12 +99,15 @@ KANDIDATEN:
 {listing}
 
 Antwoord uitsluitend met JSON: {{"schrappen": [3, 7]}}"""
-    raw = ask(prompt, model=model, max_tokens=4000)
-    try:
-        drop = {int(i) for i in json.loads(raw[raw.find("{"): raw.rfind("}") + 1])["schrappen"]}
-    except (ValueError, KeyError, TypeError):
-        print("Waarschuwing: kon de herhalingscontrole niet lezen, niets geschrapt")
-        return pool
+    data = ask_json(prompt, model=model, max_tokens=4000, required="schrappen", kind=list)
+    drop: set[int] = set()
+    for i in data["schrappen"]:
+        if isinstance(i, bool):
+            continue
+        try:
+            drop.add(int(i))
+        except (TypeError, ValueError):
+            continue
     print(f"Herhaling geschrapt: {len(drop & set(range(len(pool))))} van {len(pool)} berichten")
     return [p for i, p in enumerate(pool) if i not in drop]
 
@@ -171,9 +184,10 @@ def plan_episode(cfg: dict, today: date) -> list[TopicPlan]:
         if not items:
             continue
         scores = score_items(topic, items, cfg["models"]["scoring"], rel["focus"])
-        usable = [(it, s) for it, s in zip(items, scores) if s >= rel["min_item_score"]]
+        usable = [(it, s) for it, s in zip(items, scores) if s is not None and s >= rel["min_item_score"]]
+        known = [s for s in scores if s is not None]
         print(f"{topic['name']}: {len(items)} berichten, {len(usable)} bruikbaar, "
-              f"hoogste score {max(scores)}")
+              f"hoogste score {max(known)}")
         pool += usable
 
     pool.sort(key=lambda p: -p[1])  # stabiel: bij gelijke score blijft de volgorde van de config
