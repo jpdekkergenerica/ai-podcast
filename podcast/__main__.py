@@ -7,13 +7,12 @@ from zoneinfo import ZoneInfo
 import yaml
 
 from .audio import master, seconds_for, tag_chapters
+from .extras import AI_NOTE, plain
 from .feed import save_episode, write_site
 from .plan import TopicPlan, plan_episode, save_covered
 from .pronounce import load_learned, persistable, prepare, save_learned
 from .script import split_chapters, write_script
 from .tts import synthesize
-
-AI_NOTE = "Deze aflevering is automatisch met AI samengesteld en wordt ingesproken door een synthetische stem."
 
 
 def describe(summary: str, chapters: list[str], plans: list[TopicPlan]) -> str:
@@ -58,6 +57,11 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     ends = starts[1:] + [t]
     duration = round(seconds_for(mp3.stat().st_size))
     tag_chapters(mp3, [(c[0], round(s * 1000), round(e * 1000)) for c, s, e in zip(chapters, starts, ends)])
+    # tijden en tekst per hoofdstuk en de bronnen bewaren we, zodat de feed er hoofdstukken, transcript en shownotes van maakt
+    ep_chapters = [{"title": c[0], "start": round(s, 1), "end": round(e, 1), "text": plain(c[1])}
+                   for c, s, e in zip(chapters, starts, ends)]
+    sources = [{"topic": p.name, "title": item.title, "link": item.link, "source": item.source}
+               for p in plans for item, _ in p.items]
 
     save_episode({
         "guid": f"episode-{stamp}",
@@ -69,6 +73,9 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
         "file": mp3.name,
         "size": mp3.stat().st_size,
         "duration": duration,
+        "blurb": summary,
+        "chapters": ep_chapters,
+        "sources": sources,
     })
     save_covered(today, plans)
     (out / "tag.txt").write_text(f"ep-{stamp}")

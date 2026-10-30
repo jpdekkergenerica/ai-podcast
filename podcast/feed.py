@@ -6,7 +6,10 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from feedgen.feed import FeedGenerator
+from lxml import etree
 from PIL import Image, ImageDraw, ImageFont
+
+from .extras import chapters_json, shownotes_html, transcript_vtt
 
 EPISODES = Path("episodes.json")
 
@@ -114,5 +117,34 @@ def write_site(cfg: dict, site_dir: Path) -> None:
         fe.pubDate(published.replace(tzinfo=tz) if "published" in ep else published.replace(hour=6, tzinfo=tz))
         fe.enclosure(f"{site}/audio/{ep['file']}", str(ep["size"]), "audio/mpeg")
         fe.podcast.itunes_duration(_hms(ep["duration"]))
-    fg.rss_file(str(site_dir / "feed.xml"), pretty=True)
+        fe.content(shownotes_html(ep), type="CDATA")
+    _write_feed(fg, episodes, site, site_dir)
     print(f"Feed geschreven: {site}/feed.xml ({len(episodes)} afleveringen)")
+
+
+PODCAST_NS = "https://podcastindex.org/namespace/1.0"
+
+
+def _write_feed(fg: FeedGenerator, episodes: list[dict], site: str, site_dir: Path) -> None:
+    """Schrijft feed.xml met per aflevering podcast:chapters en podcast:transcript (feedgen kent die niet)."""
+    old = etree.fromstring(fg.rss_str(pretty=True))
+    root = etree.Element(old.tag, attrib=dict(old.attrib), nsmap={**old.nsmap, "podcast": PODCAST_NS})
+    root.extend(list(old))
+    items = root.find("channel").findall("item")
+    for item, ep in zip(items, episodes):
+        stamp = ep["file"].removesuffix(".mp3")
+        for folder, name, content, kind, tag in (
+            ("chapters", f"{stamp}.json", chapters_json(ep), "application/json+chapters", "chapters"),
+            ("transcripts", f"{stamp}.vtt", transcript_vtt(ep), "text/vtt", "transcript"),
+        ):
+            if content is None:
+                continue
+            (site_dir / folder).mkdir(exist_ok=True)
+            (site_dir / folder / name).write_text(content, encoding="utf-8")
+            el = etree.SubElement(item, f"{{{PODCAST_NS}}}{tag}")
+            el.set("url", f"{site}/{folder}/{name}")
+            el.set("type", kind)
+            if tag == "transcript":
+                el.set("language", "nl")
+    etree.indent(root)
+    (site_dir / "feed.xml").write_bytes(etree.tostring(root, xml_declaration=True, encoding="UTF-8"))

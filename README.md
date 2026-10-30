@@ -33,13 +33,15 @@ Op basis van het rapport over solo-podcasts past de pijplijn dit toe:
 - **Stijl:** consequent "je/jij", afwisselende zinslengte, pauzes van 1-2 s vóór kernpunten (`<break>`),
   levendiger stem via `voice.settings`.
 - **Audio:** -16 LUFS, -1 dBTP, hoogdoorlaat 80 Hz, milde compressie, 128 kbps CBR mono, 44,1 kHz.
+- **Feed-extra's:** per aflevering `podcast:chapters` (hoofdstukken), `podcast:transcript` (WebVTT; de tijden per zin zijn
+  een schatting op basis van lengte) en HTML-shownotes met klikbare bronlinks (`content:encoded`). `episodes.json`
+  bewaart daarvoor per aflevering de hoofdstukken, tekst en bronnen; oudere afleveringen krijgen alleen nette alinea's.
 - **Metadata:** titel als concrete vraag zonder showtitel/datum/nummer; eerste 250 tekens van de beschrijving
   bevatten de kernantwoorden; hoofdstukken < 45 tekens; AI-vermelding en bronnen onderaan.
 - **Cover:** 3000x3000 JPEG (<500 KB), hoog contrast, veilige marge. Eigen ontwerp? Zet het als `assets/cover.jpg`.
 - **Ritme:** vaste publicatietijd (02:30 UTC, dus 03:30/04:30 Nederlandse tijd).
 
-Bewust niet gedaan: luisterersvragen via SpeakPipe (vraagt een menselijke tussenstap), audiograms/nieuwsbrief en
-getimede transcripties. Dit is het eerste wat je kunt toevoegen als de podcast publiek gaat.
+Bewust niet gedaan: luisterersvragen via SpeakPipe (vraagt een menselijke tussenstap) en audiograms/nieuwsbrief. Dit is het eerste wat je kunt toevoegen als de podcast publiek gaat.
 
 ## Instellingen aanpassen (lokale pagina)
 
