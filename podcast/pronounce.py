@@ -1,10 +1,7 @@
-import json
 import re
-from pathlib import Path
 
 from .llm import ask_json
-
-STORE = Path("pronunciation.json")
+from .store import DEFAULT_STORE, ShowStore
 
 PROMPT = """Je bereidt een Nederlands podcastscript voor op een tekst-naar-spraakstem. De stem leest afkortingen,
 buitenlandse namen en cijfers vaak verkeerd voor (bijvoorbeeld een afkorting als woord in plaats van letter voor letter).
@@ -38,12 +35,12 @@ TEKST:
 Antwoord uitsluitend met JSON: {{"uitspraak": {{"term": "gesproken vorm", ...}}}}"""
 
 
-def load_learned() -> dict[str, str]:
-    return json.loads(STORE.read_text()) if STORE.exists() else {}
+def load_learned(store: ShowStore | None = None) -> dict[str, str]:
+    return (store or DEFAULT_STORE).load_learned()
 
 
-def save_learned(learned: dict[str, str]) -> None:
-    STORE.write_text(json.dumps(dict(sorted(learned.items())), ensure_ascii=False, indent=1) + "\n")
+def save_learned(learned: dict[str, str], store: ShowStore | None = None) -> None:
+    (store or DEFAULT_STORE).save_learned(learned)
 
 
 def detect(text: str, known: dict[str, str], model: str) -> dict[str, str]:
@@ -73,10 +70,11 @@ def apply(text: str, mapping: dict[str, str]) -> str:
     return pattern.sub(lambda m: mapping[m.group(0)], text)
 
 
-def prepare(chapters: list[tuple[str, str]], cfg: dict) -> tuple[list[str], dict[str, str]]:
+def prepare(chapters: list[tuple[str, str]], cfg: dict,
+            store: ShowStore | None = None) -> tuple[list[str], dict[str, str]]:
     """Geeft de uitgesproken tekst per hoofdstuk en de nieuw geleerde termen.
     Prioriteit: config (`pronunciation`) > eerder geleerd > nieuw. Hoofdstuktitels blijven ongewijzigd."""
-    fixed = {**load_learned(), **cfg.get("pronunciation", {})}
+    fixed = {**load_learned(store), **cfg.get("pronunciation", {})}
     full = "\n\n".join(text for _, text in chapters)
     new = detect(full, fixed, cfg["models"]["script"])
     mapping = {**new, **fixed}

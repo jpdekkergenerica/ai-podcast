@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="nl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Persoonlijke podcast</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="../../_dev/ds-loader.js"></script>
+<script>
+  // Zelfde origin als de API wanneer geserveerd via /app/…
+  window.PODCAST_API_BASE = window.PODCAST_API_BASE || (location.port === "8000" ? location.origin : "http://127.0.0.1:8000");
+</script>
+<style>
+  html, body, #root { height: 100%; margin: 0; background: var(--bg-primary); }
+  body { overscroll-behavior: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+MonseyLoad(["ui_kits/podcast-app/App.jsx"]).then(({ App }) => {
+  const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <App framed={false} theme={dark ? "dark" : "light"} />
+  );
+});
+</script>
+</body></html>

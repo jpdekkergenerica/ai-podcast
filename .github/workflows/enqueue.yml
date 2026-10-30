@@ -1,0 +1,33 @@
+name: Dagelijks alle shows in de wachtrij
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-api.txt
+      - name: Enqueue + verwerk
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+          STORAGE_ROOT: data/storage
+          AUTH_DEV_MODE: "0"
+        run: |
+          python -m worker.run enqueue-all
+          # Verwerk tot de wachtrij leeg is (max 50 jobs per run)
+          for i in $(seq 1 50); do
+            n=$(python -m worker.run once | tee /dev/stderr | awk '{print $1}')
+            [ "$n" = "0" ] && break
+          done

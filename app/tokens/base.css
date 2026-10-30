@@ -1,0 +1,14 @@
+/* Minimal element defaults so consumers inherit the system. */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: var(--type-body);
+  font-feature-settings: "ss01" 0;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--info-text); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: var(--border-2) solid var(--focus-ring); outline-offset: var(--focus-offset); }
+::selection { background: var(--bg-inverse); color: var(--text-inverse); }

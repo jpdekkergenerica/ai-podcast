@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" viewport="700x1000" name="Overlays" subtitle="Bottom sheet, dialog (incl. destructive), toasts, AI consent sheet" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../_dev/ds-loader.js"></script>
+</head><body style="background:var(--bg-primary)">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+MonseyReady(["components/overlays/BottomSheet.jsx","components/overlays/Dialog.jsx","components/overlays/Toast.jsx","components/overlays/ConsentSheet.jsx","components/core/Button.jsx"]).then((NS) => {
+  const { BottomSheet, Dialog, Toast, ConsentSheet, Button } = NS;
+  const Cap = ({ children }) => <div style={{ font: "var(--type-mono-small)", color: "var(--text-tertiary)", marginTop: 4 }}>{children}</div>;
+  const Pane = ({ theme, children }) => <div data-theme={theme} style={{ background: "var(--bg-primary)", color: "var(--text-primary)", padding: 16, display: "flex", flexDirection: "column", gap: 12, flex: 1, minWidth: 0, border: "1px solid var(--border-default)" }}>{children}</div>;
+  const Both = ({ render }) => <div style={{ display: "flex" }}><Pane theme="light">{render("light")}</Pane><Pane theme="dark">{render("dark")}</Pane></div>;
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<Both render={(t) => <>
+    <Toast icon="check" message="Đã lưu −45.000 ₫ vào Ăn uống" action="Hoàn tác" />
+    <Toast variant="error" message="Không lưu được. Kiểm tra kết nối." action="Thử lại" />
+    <Dialog inline title="Lưu thay đổi?" confirmLabel="Lưu">Bạn đã sửa số tiền và danh mục.</Dialog>
+    <Dialog inline destructive title="Xoá ví “Tiền mặt”?" confirmLabel="Xoá ví">32 giao dịch trong ví này sẽ bị xoá vĩnh viễn. Không thể hoàn tác.</Dialog>
+    <div style={{ position: "relative", height: 560, margin: "0 -16px", overflow: "hidden", background: "var(--bg-secondary)" }}><ConsentSheet kind="ai" /></div>
+  </>} />);
+});
+</script>
+</body></html>

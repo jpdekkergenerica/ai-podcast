@@ -10,21 +10,21 @@ from lxml import etree
 from PIL import Image, ImageDraw, ImageFont
 
 from .extras import chapters_json, shownotes_html, transcript_vtt
-
-EPISODES = Path("episodes.json")
-
-
-def load_episodes() -> list[dict]:
-    return json.loads(EPISODES.read_text()) if EPISODES.exists() else []
+from .store import DEFAULT_STORE, ShowStore
 
 
-def save_episode(ep: dict) -> None:
-    eps = [e for e in load_episodes() if e["guid"] != ep["guid"]] + [ep]  # elke run voegt een aflevering toe
-    eps.sort(key=lambda e: e.get("published") or e["date"], reverse=True)  # nieuwste eerst
-    EPISODES.write_text(json.dumps(eps, ensure_ascii=False, indent=2) + "\n")
+def load_episodes(store: ShowStore | None = None) -> list[dict]:
+    return (store or DEFAULT_STORE).load_episodes()
+
+
+def save_episode(ep: dict, store: ShowStore | None = None) -> None:
+    (store or DEFAULT_STORE).save_episode(ep)
 
 
 def _urls(cfg: dict) -> tuple[str, str, str]:
+    if cfg.get("podcast", {}).get("site_url"):
+        site = cfg["podcast"]["site_url"].rstrip("/")
+        return site, f"{site}/media", ""
     repo = os.environ.get("GITHUB_REPOSITORY") or cfg["podcast"]["repository"]
     owner, name = repo.split("/")
     site = f"https://{owner}.github.io/{name}"
@@ -82,9 +82,16 @@ def make_cover(title: str, dest: Path) -> None:
     img.save(dest, "JPEG", quality=85)
 
 
-def write_site(cfg: dict, site_dir: Path) -> None:
+def write_site(cfg: dict, site_dir: Path, store: ShowStore | None = None,
+               audio_url_for=None) -> None:
+    """Schrijft cover, feed.xml, chapters en transcripts.
+
+    audio_url_for(ep) → absolute URL naar de mp3; standaard GitHub Pages /audio/.
+    """
     p = cfg["podcast"]
     site, media, _ = _urls(cfg)
+    token = p.get("feed_token") or ""
+    q = f"?token={token}" if token else ""
     site_dir.mkdir(parents=True, exist_ok=True)
     make_cover(p["title"], site_dir / "cover.jpg")
     # Apple onthoudt artwork per URL: een versie in de bestandsnaam zorgt dat een nieuwe cover wordt opgehaald
@@ -97,16 +104,19 @@ def write_site(cfg: dict, site_dir: Path) -> None:
     fg.title(p["title"])
     fg.description(p["description"])
     fg.link(href=site, rel="alternate")
-    fg.link(href=f"{site}/feed.xml", rel="self")
+    feed_self = p.get("feed_url") or f"{site}/feed.xml"
+    fg.link(href=feed_self, rel="self")
     fg.language(p["language"])
     fg.podcast.itunes_author(p["author"])
     fg.podcast.itunes_owner(name=p["author"], email=p["email"])
-    fg.podcast.itunes_image(f"{site}/{cover}")
+    fg.podcast.itunes_image(f"{site}/{cover}{q}")
     fg.podcast.itunes_category("News", "Daily News")
     fg.podcast.itunes_explicit("no")
 
     tz = ZoneInfo("Europe/Amsterdam")
-    episodes = load_episodes()[: p.get("keep_episodes", 14)]  # alleen deze afleveringen staan als mp3 op de site
+    episodes = load_episodes(store)[: p.get("keep_episodes", 14)]
+    if audio_url_for is None:
+        audio_url_for = lambda ep: f"{site}/audio/{ep['file']}{q}"
     for ep in episodes:
         fe = fg.add_entry(order="append")
         fe.id(ep["guid"])
@@ -115,17 +125,18 @@ def write_site(cfg: dict, site_dir: Path) -> None:
         fe.description(ep["summary"])
         published = datetime.fromisoformat(ep.get("published") or ep["date"]).replace(tzinfo=None)
         fe.pubDate(published.replace(tzinfo=tz) if "published" in ep else published.replace(hour=6, tzinfo=tz))
-        fe.enclosure(f"{site}/audio/{ep['file']}", str(ep["size"]), "audio/mpeg")
+        fe.enclosure(audio_url_for(ep), str(ep["size"]), "audio/mpeg")
         fe.podcast.itunes_duration(_hms(ep["duration"]))
         fe.content(shownotes_html(ep), type="CDATA")
-    _write_feed(fg, episodes, site, site_dir)
-    print(f"Feed geschreven: {site}/feed.xml ({len(episodes)} afleveringen)")
+    _write_feed(fg, episodes, site, site_dir, query=q)
+    print(f"Feed geschreven: {feed_self} ({len(episodes)} afleveringen)")
 
 
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 
 
-def _write_feed(fg: FeedGenerator, episodes: list[dict], site: str, site_dir: Path) -> None:
+def _write_feed(fg: FeedGenerator, episodes: list[dict], site: str, site_dir: Path,
+                query: str = "") -> None:
     """Schrijft feed.xml met per aflevering podcast:chapters en podcast:transcript (feedgen kent die niet)."""
     old = etree.fromstring(fg.rss_str(pretty=True))
     root = etree.Element(old.tag, attrib=dict(old.attrib), nsmap={**old.nsmap, "podcast": PODCAST_NS})
@@ -142,7 +153,7 @@ def _write_feed(fg: FeedGenerator, episodes: list[dict], site: str, site_dir: Pa
             (site_dir / folder).mkdir(exist_ok=True)
             (site_dir / folder / name).write_text(content, encoding="utf-8")
             el = etree.SubElement(item, f"{{{PODCAST_NS}}}{tag}")
-            el.set("url", f"{site}/{folder}/{name}")
+            el.set("url", f"{site}/{folder}/{name}{query}")
             el.set("type", kind)
             if tag == "transcript":
                 el.set("language", "nl")

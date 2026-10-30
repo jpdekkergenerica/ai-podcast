@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Navigation" subtitle="Tab bar with centre ⊕ Ghi, root AppHeader, top app bars" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../_dev/ds-loader.js"></script>
+</head><body style="background:var(--bg-primary)">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+MonseyReady(["components/navigation/TabBar.jsx","components/navigation/TopAppBar.jsx","components/core/IconButton.jsx","components/navigation/AppHeader.jsx"]).then((NS) => {
+  const { TabBar, TopAppBar, IconButton, AppHeader } = NS;
+  const Cap = ({ children }) => <div style={{ font: "var(--type-mono-small)", color: "var(--text-tertiary)", marginTop: 4 }}>{children}</div>;
+  const Pane = ({ theme, children }) => <div data-theme={theme} style={{ background: "var(--bg-primary)", color: "var(--text-primary)", padding: 16, display: "flex", flexDirection: "column", gap: 12, flex: 1, minWidth: 0, border: "1px solid var(--border-default)" }}>{children}</div>;
+  const Both = ({ render }) => <div style={{ display: "flex" }}><Pane theme="light">{render("light")}</Pane><Pane theme="dark">{render("dark")}</Pane></div>;
+
+  const T = () => { const [v, setV] = React.useState("home"); return <TabBar value={v} onChange={setV} onCenter={() => {}} />; };
+  ReactDOM.createRoot(document.getElementById("root")).render(<Both render={(t) => <div style={{ margin: -16, display: "flex", flexDirection: "column", gap: 16 }}>
+    <AppHeader title="Tổng quan" unread={3} onAvatar={() => {}} />
+    <TopAppBar title="Ghi chi tiêu" onClose={() => {}} actions={<IconButton icon="more-vertical" label="Thêm" />} />
+    <TopAppBar variant="large" title="Báo cáo" subtitle="Tháng 10, 2026" onBack={() => {}} actions={<IconButton icon="calendar" label="Chọn kỳ" />} />
+    <T />
+  </div>} />);
+});
+</script>
+</body></html>

@@ -1,0 +1,123 @@
+/* Monsey — monochrome base + 4 semantic signals. Light = "Paper", dark = "LED" (true inversion of the neutrals; signals brighten). */
+:root {
+  /* Primitive scale */
+  --black: #000000;
+  --white: #FFFFFF;
+  --gray-50: #F5F5F5;
+  --gray-100: #EBEBEB;
+  --gray-200: #D9D9D9;
+  --gray-300: #BDBDBD;
+  --gray-400: #999999;
+  --gray-500: #767676; /* pivot gray: ≥4.5:1 on BOTH white and black */
+  --gray-600: #525252;
+  --gray-700: #3D3D3D;
+  --gray-800: #262626;
+  --gray-900: #141414;
+
+  /* Semantic — light */
+  --bg-primary: var(--white);
+  --bg-secondary: var(--gray-50);
+  --bg-tertiary: var(--gray-100);
+  --bg-inverse: var(--black);
+  --ad-bg: #ECECEA; /* native ad card fill — distinct from app surfaces */
+  --ad-border: transparent;
+  /* Elevation surfaces (light: paper + shadow; dark: lightness only) */
+  --bg-base: var(--white); --bg-raised: var(--white); --bg-elevated: var(--gray-50); --bg-overlay: var(--gray-100);
+  --bg-group: var(--white); --bg-group-page: var(--gray-50); --bg-group-sheet: var(--white);
+  --scrim: rgba(0, 0, 0, 0.12); --scrim-blur: 10px;
+  --shadow-sheet: 0 12px 40px rgba(0,0,0,.18), 0 0 0 0.5px rgba(0,0,0,.06);
+  --shadow-pill: 0 4px 16px rgba(0,0,0,.07), 0 0 0 0.5px rgba(0,0,0,.05);
+  --text-hero: var(--black);
+  --bg-float: var(--white); --bg-pill: var(--gray-50); --toast-bg: var(--black); --toast-fg: var(--white);
+  --switch-off-track: var(--bg-tertiary); --switch-off-knob: var(--white); --switch-on-track: var(--black); --switch-on-knob: var(--white);
+  --bg-pressed: var(--gray-100);
+  --bg-inverse-pressed: var(--gray-700);
+  --bg-disabled: var(--gray-100);
+
+  --text-primary: var(--black);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-inverse: var(--white);
+  --text-disabled: var(--gray-400); /* exempt from contrast (WCAG 1.4.3 inactive UI) */
+
+  --border-subtle: var(--gray-100);
+  --border-default: var(--gray-200); /* dividers only — not for interactive boundaries */
+  --border-control: var(--gray-500); /* input/control outlines, ≥3:1 (WCAG 1.4.11) */
+  --border-strong: var(--black);
+  --overlay: rgba(0, 0, 0, 0.56);
+
+  /* Chart ink */
+  --chart-ink: var(--black);
+  --chart-step-1: var(--gray-600);
+  --chart-step-2: var(--gray-400);
+  --chart-track: var(--gray-100);
+
+  /* 1-bit fills (crisp at 1× and 2×; no anti-aliased edges) */
+  --pattern-dither-50: repeating-conic-gradient(var(--chart-ink) 0 25%, transparent 0 50%) 0 0 / 2px 2px;
+  --pattern-dither-25: conic-gradient(at 1px 1px, transparent 75%, var(--chart-ink) 0) 0 0 / 2px 2px;
+  --pattern-dither-12: conic-gradient(at 1px 1px, transparent 75%, var(--chart-ink) 0) 0 0 / 3px 3px;
+  --pattern-hatch-v: linear-gradient(90deg, var(--chart-ink) 0 1px, transparent 1px) 0 0 / 3px 3px;
+  --pattern-hatch-h: linear-gradient(180deg, var(--chart-ink) 0 1px, transparent 1px) 0 0 / 3px 3px;
+
+  /* Semantic signals — Paper. One meaning each; state only, never decoration (≤10% of a screen).
+     -text ≥4.5:1 on bg/primary · -signal ≥3:1 for icons/blocks · -fill solid surface · -on content on fill · -bg 8–12% tint */
+  --positive-text: #0A7A3D;  --positive-signal: #12A150; --positive-fill: #0A7A3D; --positive-on: #FFFFFF; --positive-bg: rgba(18, 161, 80, 0.10);
+  --negative-text: #D12C2C;  --negative-signal: #FF3B30; --negative-fill: #D12C2C; --negative-on: #FFFFFF; --negative-bg: rgba(255, 59, 48, 0.10);
+  --warning-text: #8A6100;   --warning-signal: #8A6100;  --warning-fill: #FFC800;  --warning-on: #000000;  --warning-bg: rgba(255, 200, 0, 0.12);
+  --info-text: #1F5FE0;      --info-signal: #1F5FE0;     --info-fill: #1F5FE0;     --info-on: #FFFFFF;     --info-bg: rgba(31, 95, 224, 0.08);
+  --negative-fill-pressed: #A82020;
+  --led-glow: 0px; /* Paper: flat. LED: 4px indicator glow */
+  --focus-ring: var(--info-signal);
+
+  color-scheme: light;
+}
+
+/* Dark — free, follows the system setting. True-black OLED base; elevation by lightness, no shadows.
+   Pro "LED" layer (dot-matrix glow, ghost pixels, indicator lights) sits on top via [data-led] — see tokens/led.css. */
+[data-theme="dark"] {
+  --bg-base: #000000; --bg-raised: #0E0E0F; --bg-elevated: #18181A; --bg-overlay: #232326;
+  --bg-primary: var(--bg-base);
+  --bg-secondary: var(--bg-raised);
+  --bg-tertiary: var(--bg-overlay);
+  --bg-group: var(--bg-raised); --bg-group-page: var(--bg-base); --bg-group-sheet: var(--bg-overlay);
+  --bg-inverse: #F2F2F2;
+  --ad-bg: #1C1C1E; --ad-border: #3A3A3F;
+  --bg-pressed: var(--bg-overlay);
+  --bg-inverse-pressed: #C8C8CC;
+  --bg-disabled: var(--bg-raised);
+  --scrim: rgba(0, 0, 0, 0.6); --scrim-blur: 20px;
+  --shadow-sheet: 0 0 0 1px #26262A;
+  --shadow-pill: 0 0 0 1px #26262A;
+
+  --text-primary: #F2F2F2;
+  --text-secondary: #A1A1A6;
+  --text-tertiary: #8E8E93; /* spec #6E6E73 measured 4.14:1 on black → raised to pass 4.5:1; #6E6E73 kept for borders & the off knob */
+  --text-inverse: #000000;
+  --text-disabled: #48484C;
+  --text-hero: #FFFFFF;
+  --bg-float: var(--bg-elevated); --bg-pill: var(--bg-elevated); --toast-bg: var(--bg-elevated); --toast-fg: #F2F2F2;
+
+  --border-subtle: #26262A;
+  --border-default: #26262A;
+  --border-control: #6E6E73;
+  --border-strong: #3A3A3F;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --focus-ring: var(--text-primary);
+
+  --switch-off-track: var(--bg-overlay); --switch-off-knob: #6E6E73; --switch-on-track: #F2F2F2; --switch-on-knob: #000000; --switch-knob-shadow: none; --shadow-round: none; --shadow-card: 0 0 0 0 transparent;
+
+  --chart-ink: #F2F2F2;
+  --chart-step-1: #A1A1A6;
+  --chart-step-2: #6E6E73;
+  --chart-track: var(--bg-overlay);
+
+  /* Signals — dark. Tints 16%. Content on fills is black. Yellow is allowed as text here. */
+  --positive-text: #3DDC84;  --positive-signal: #3DDC84; --positive-fill: #3DDC84; --positive-on: #000000; --positive-bg: rgba(61, 220, 132, 0.16);
+  --negative-text: #FF5A4F;  --negative-signal: #FF5A4F; --negative-fill: #FF5A4F; --negative-on: #000000; --negative-bg: rgba(255, 90, 79, 0.16);
+  --warning-text: #FFD60A;   --warning-signal: #FFD60A;  --warning-fill: #FFD60A;  --warning-on: #000000;  --warning-bg: rgba(255, 214, 10, 0.16);
+  --info-text: #5B8CFF;      --info-signal: #5B8CFF;     --info-fill: #5B8CFF;     --info-on: #000000;     --info-bg: rgba(91, 140, 255, 0.16);
+  --negative-fill-pressed: #D9463D;
+  --led-glow: 0px;
+
+  color-scheme: dark;
+}

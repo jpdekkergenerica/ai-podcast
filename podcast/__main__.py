@@ -12,6 +12,7 @@ from .feed import save_episode, write_site
 from .plan import TopicPlan, plan_episode, save_covered
 from .pronounce import load_learned, persistable, prepare, save_learned
 from .script import split_chapters, write_script
+from .store import DEFAULT_STORE, FileShowStore, ShowStore
 from .tts import synthesize
 
 
@@ -22,29 +23,30 @@ def describe(summary: str, chapters: list[str], plans: list[TopicPlan]) -> str:
             f"Bronnen: {', '.join(sources)}.\n\n{AI_NOTE}")
 
 
-def build(cfg: dict, out: Path, no_tts: bool) -> None:
+def build(cfg: dict, out: Path, no_tts: bool, store: ShowStore | None = None) -> dict | None:
+    """Bouwt een aflevering. Geeft het episode-dict terug, of None als er geen nieuws was."""
+    store = store or DEFAULT_STORE
     out.mkdir(parents=True, exist_ok=True)
     now = datetime.now(ZoneInfo("Europe/Amsterdam"))
     today = now.date()
-    plans = plan_episode(cfg, today)
+    plans = plan_episode(cfg, today, store=store)
     if not plans:
         print("Geen relevant nieuws vandaag, geen aflevering.")
-        return
+        return None
 
     title, summary, script = write_script(plans, cfg, today)
     chapters = split_chapters(script)
     (out / "script.txt").write_text(script)
     print(f"\n{title}\n{summary}\n({len(script.split())} woorden, {len(chapters)} hoofdstukken)")
-    spoken, new_terms = prepare(chapters, cfg)  # uitspraak: afkortingen, buitenlandse namen, symbolen
+    spoken, new_terms = prepare(chapters, cfg, store=store)
     (out / "script_uitgesproken.txt").write_text("\n\n".join(spoken))
     print("Uitspraak (nieuw): " + (", ".join(f"{k} -> {v}" for k, v in new_terms.items()) or "geen"))
     if no_tts:
         print("\n" + "\n\n".join(spoken))
-        return
-    save_learned({**load_learned(), **persistable(new_terms)})
+        return {"title": title, "summary": summary, "script": script, "no_tts": True}
+    save_learned({**load_learned(store), **persistable(new_terms)}, store=store)
 
     audio = [synthesize(text, cfg) for text in spoken]
-    # unieke id per run: een opnieuw gemaakte aflevering van dezelfde dag moet voor apps een nieuwe aflevering zijn
     stamp = now.strftime("%Y-%m-%d-%H%M")
     raw, mp3 = out / f"{stamp}.raw.mp3", out / f"{stamp}.mp3"
     raw.write_bytes(b"".join(audio))
@@ -57,13 +59,12 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
     ends = starts[1:] + [t]
     duration = round(seconds_for(mp3.stat().st_size))
     tag_chapters(mp3, [(c[0], round(s * 1000), round(e * 1000)) for c, s, e in zip(chapters, starts, ends)])
-    # tijden en tekst per hoofdstuk en de bronnen bewaren we, zodat de feed er hoofdstukken, transcript en shownotes van maakt
     ep_chapters = [{"title": c[0], "start": round(s, 1), "end": round(e, 1), "text": plain(c[1])}
                    for c, s, e in zip(chapters, starts, ends)]
     sources = [{"topic": p.name, "title": item.title, "link": item.link, "source": item.source}
                for p in plans for item, _ in p.items]
 
-    save_episode({
+    episode = {
         "guid": f"episode-{stamp}",
         "date": today.isoformat(),
         "published": now.isoformat(timespec="seconds"),
@@ -76,9 +77,11 @@ def build(cfg: dict, out: Path, no_tts: bool) -> None:
         "blurb": summary,
         "chapters": ep_chapters,
         "sources": sources,
-    })
-    save_covered(today, plans)
+    }
+    save_episode(episode, store=store)
+    save_covered(today, plans, store=store)
     (out / "tag.txt").write_text(f"ep-{stamp}")
+    return episode
 
 
 def main() -> None:
@@ -100,10 +103,11 @@ def main() -> None:
         cfg["duration"]["max_minutes"] = float(os.environ["MAX_MINUTES"])
         print(f"Duur overschreven: {cfg['duration']['max_minutes']} minuten")
     out = Path(args.out)
+    store = FileShowStore(Path.cwd())
     if args.command == "build":
-        build(cfg, out, args.no_tts)
+        build(cfg, out, args.no_tts, store=store)
     if not args.no_tts:
-        write_site(cfg, out / "site")
+        write_site(cfg, out / "site", store=store)
 
 
 if __name__ == "__main__":

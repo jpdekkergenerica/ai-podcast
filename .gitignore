@@ -4,3 +4,8 @@ out/
 .env
 brondata/
 .DS_Store
+data/
+*.db
+ios/*.xcodeproj
+ios/*.xcworkspace
+ios/DerivedData/

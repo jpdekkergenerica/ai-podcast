@@ -1,0 +1,547 @@
+{
+  "$description": "Monsey design tokens. Mirrors tokens/*.css (CSS custom properties).",
+  "color": {
+    "black": {
+      "$type": "color",
+      "$value": "#000000"
+    },
+    "white": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "gray": {
+      "50": {
+        "$type": "color",
+        "$value": "#F5F5F5"
+      },
+      "100": {
+        "$type": "color",
+        "$value": "#EBEBEB"
+      },
+      "200": {
+        "$type": "color",
+        "$value": "#D9D9D9"
+      },
+      "300": {
+        "$type": "color",
+        "$value": "#BDBDBD"
+      },
+      "400": {
+        "$type": "color",
+        "$value": "#999999"
+      },
+      "500": {
+        "$type": "color",
+        "$value": "#767676"
+      },
+      "600": {
+        "$type": "color",
+        "$value": "#525252"
+      },
+      "700": {
+        "$type": "color",
+        "$value": "#3D3D3D"
+      },
+      "800": {
+        "$type": "color",
+        "$value": "#262626"
+      },
+      "900": {
+        "$type": "color",
+        "$value": "#141414"
+      }
+    }
+  },
+  "semantic": {
+    "light": {
+      "bg/primary": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "bg/secondary": {
+        "$type": "color",
+        "$value": "{color.gray.50}"
+      },
+      "bg/tertiary": {
+        "$type": "color",
+        "$value": "{color.gray.100}"
+      },
+      "bg/inverse": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "bg/pressed": {
+        "$type": "color",
+        "$value": "{color.gray.100}"
+      },
+      "bg/inverse-pressed": {
+        "$type": "color",
+        "$value": "{color.gray.700}"
+      },
+      "bg/disabled": {
+        "$type": "color",
+        "$value": "{color.gray.100}"
+      },
+      "text/primary": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "text/secondary": {
+        "$type": "color",
+        "$value": "{color.gray.600}"
+      },
+      "text/tertiary": {
+        "$type": "color",
+        "$value": "{color.gray.500}"
+      },
+      "text/inverse": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "text/disabled": {
+        "$type": "color",
+        "$value": "{color.gray.400}"
+      },
+      "border/subtle": {
+        "$type": "color",
+        "$value": "{color.gray.100}"
+      },
+      "border/default": {
+        "$type": "color",
+        "$value": "{color.gray.200}"
+      },
+      "border/control": {
+        "$type": "color",
+        "$value": "{color.gray.500}"
+      },
+      "border/strong": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "chart/ink": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "chart/step-1": {
+        "$type": "color",
+        "$value": "{color.gray.600}"
+      },
+      "chart/step-2": {
+        "$type": "color",
+        "$value": "{color.gray.400}"
+      },
+      "chart/track": {
+        "$type": "color",
+        "$value": "{color.gray.100}"
+      },
+      "overlay": {
+        "$type": "color",
+        "$value": "rgba(0,0,0,0.56)"
+      }
+    },
+    "dark": {
+      "bg/primary": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "bg/secondary": {
+        "$type": "color",
+        "$value": "{color.gray.900}"
+      },
+      "bg/tertiary": {
+        "$type": "color",
+        "$value": "{color.gray.800}"
+      },
+      "bg/inverse": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "bg/pressed": {
+        "$type": "color",
+        "$value": "{color.gray.800}"
+      },
+      "bg/inverse-pressed": {
+        "$type": "color",
+        "$value": "{color.gray.300}"
+      },
+      "bg/disabled": {
+        "$type": "color",
+        "$value": "{color.gray.800}"
+      },
+      "text/primary": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "text/secondary": {
+        "$type": "color",
+        "$value": "{color.gray.400}"
+      },
+      "text/tertiary": {
+        "$type": "color",
+        "$value": "{color.gray.500}"
+      },
+      "text/inverse": {
+        "$type": "color",
+        "$value": "{color.black}"
+      },
+      "text/disabled": {
+        "$type": "color",
+        "$value": "{color.gray.600}"
+      },
+      "border/subtle": {
+        "$type": "color",
+        "$value": "{color.gray.900}"
+      },
+      "border/default": {
+        "$type": "color",
+        "$value": "{color.gray.800}"
+      },
+      "border/control": {
+        "$type": "color",
+        "$value": "{color.gray.500}"
+      },
+      "border/strong": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "chart/ink": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "chart/step-1": {
+        "$type": "color",
+        "$value": "{color.gray.400}"
+      },
+      "chart/step-2": {
+        "$type": "color",
+        "$value": "{color.gray.600}"
+      },
+      "chart/track": {
+        "$type": "color",
+        "$value": "{color.gray.800}"
+      },
+      "overlay": {
+        "$type": "color",
+        "$value": "rgba(0,0,0,0.72)"
+      }
+    }
+  },
+  "font": {
+    "pixel": {
+      "$type": "fontFamily",
+      "$value": [
+        "Geist Pixel Square",
+        "Geist Mono",
+        "monospace"
+      ]
+    },
+    "sans": {
+      "$type": "fontFamily",
+      "$value": [
+        "Geist",
+        "system-ui",
+        "sans-serif"
+      ]
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "Geist Mono",
+        "ui-monospace",
+        "monospace"
+      ]
+    }
+  },
+  "typography": {
+    "display-xl": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.pixel}",
+        "fontWeight": 400,
+        "fontSize": "56px",
+        "lineHeight": "56px",
+        "letterSpacing": "-0.01em"
+      }
+    },
+    "display-l": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.pixel}",
+        "fontWeight": 400,
+        "fontSize": "40px",
+        "lineHeight": "44px",
+        "letterSpacing": "0"
+      }
+    },
+    "display-m": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.pixel}",
+        "fontWeight": 400,
+        "fontSize": "32px",
+        "lineHeight": "36px",
+        "letterSpacing": "0"
+      }
+    },
+    "display-s": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.pixel}",
+        "fontWeight": 400,
+        "fontSize": "24px",
+        "lineHeight": "28px",
+        "letterSpacing": "0"
+      }
+    },
+    "title": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 600,
+        "fontSize": "20px",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.01em"
+      }
+    },
+    "headline": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 600,
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "letterSpacing": "-0.005em"
+      }
+    },
+    "body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 400,
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "letterSpacing": "0"
+      }
+    },
+    "body-small": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 400,
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "letterSpacing": "0"
+      }
+    },
+    "label": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 500,
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "letterSpacing": "0.005em"
+      }
+    },
+    "caption": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.sans}",
+        "fontWeight": 400,
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "letterSpacing": "0.01em"
+      }
+    },
+    "mono-amount": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.mono}",
+        "fontWeight": 500,
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "letterSpacing": "0"
+      }
+    },
+    "mono-l": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.mono}",
+        "fontWeight": 500,
+        "fontSize": "20px",
+        "lineHeight": "28px",
+        "letterSpacing": "0"
+      }
+    },
+    "mono-small": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.mono}",
+        "fontWeight": 400,
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "letterSpacing": "0"
+      }
+    }
+  },
+  "space": {
+    "4": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": "24px"
+    },
+    "32": {
+      "$type": "dimension",
+      "$value": "32px"
+    },
+    "48": {
+      "$type": "dimension",
+      "$value": "48px"
+    },
+    "64": {
+      "$type": "dimension",
+      "$value": "64px"
+    }
+  },
+  "layout": {
+    "screen-margin": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "grid-columns": {
+      "$type": "number",
+      "$value": 4
+    },
+    "grid-gutter": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "touch-min": {
+      "$type": "dimension",
+      "$value": "44px"
+    },
+    "tabbar-h": {
+      "$type": "dimension",
+      "$value": "64px"
+    },
+    "appbar-h": {
+      "$type": "dimension",
+      "$value": "56px"
+    }
+  },
+  "radius": {
+    "none": {
+      "$type": "dimension",
+      "$value": "0px",
+      "$description": "Data & brand: tower blocks, heatmap, bars, receipt edge, Mon sprite"
+    },
+    "xs": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "Tags, small badges"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "Inputs, thumbnails"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "Dense cards, tiles, keypad keys"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "Cards, toasts, widgets"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Sheets/modals top corners, floating tab bar"
+    },
+    "full": {
+      "$type": "dimension",
+      "$value": "9999px",
+      "$description": "Buttons, chips, ⊕, mic, shutter, toggles, avatars, dots"
+    }
+  },
+  "border": {
+    "1": {
+      "$type": "dimension",
+      "$value": "1px"
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "focus · selected · error"
+    }
+  },
+  "motion": {
+    "duration": {
+      "100": {
+        "$type": "duration",
+        "$value": "100ms"
+      },
+      "150": {
+        "$type": "duration",
+        "$value": "150ms"
+      },
+      "200": {
+        "$type": "duration",
+        "$value": "200ms"
+      },
+      "250": {
+        "$type": "duration",
+        "$value": "250ms"
+      }
+    },
+    "easing": {
+      "step-4": {
+        "$type": "string",
+        "$value": "steps(4, end)"
+      },
+      "step-8": {
+        "$type": "string",
+        "$value": "steps(8, end)"
+      },
+      "fade": {
+        "$type": "cubicBezier",
+        "$value": [
+          0.2,
+          0,
+          0,
+          1
+        ]
+      }
+    }
+  },
+  "shadow": {
+    "float": {
+      "$type": "shadow",
+      "$value": {
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "24px",
+        "spread": "0px",
+        "color": "rgba(0,0,0,0.08)"
+      },
+      "$description": "Paper mode only — sheets, toasts, floating tab bar, ⊕. LED uses a 1px border-default instead."
+    }
+  }
+}

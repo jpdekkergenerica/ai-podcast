@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: podcast
+      POSTGRES_PASSWORD: podcast
+      POSTGRES_DB: podcast
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://podcast:podcast@db:5432/podcast
+      PUBLIC_BASE_URL: http://127.0.0.1:8000
+      AUTH_DEV_MODE: "1"
+      WORKER_INLINE: "0"
+      STORAGE_ROOT: /data/storage
+      API_JWT_SECRET: dev-secret-change-me
+      CORS_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      - db
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: python -m worker.run loop --sleep 5
+    environment:
+      DATABASE_URL: postgresql+psycopg://podcast:podcast@db:5432/podcast
+      PUBLIC_BASE_URL: http://127.0.0.1:8000
+      STORAGE_ROOT: /data/storage
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+  storage:

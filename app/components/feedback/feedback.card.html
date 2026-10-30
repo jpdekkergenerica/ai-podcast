@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" viewport="700x640" name="Feedback" subtitle="Skeletons, empty & error states, offline banner" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../_dev/ds-loader.js"></script>
+</head><body style="background:var(--bg-primary)">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+MonseyReady(["components/feedback/Skeleton.jsx","components/feedback/EmptyState.jsx","components/feedback/ErrorState.jsx","components/feedback/OfflineBanner.jsx"]).then((NS) => {
+  const { Skeleton, EmptyState, ErrorState, OfflineBanner } = NS;
+  const Cap = ({ children }) => <div style={{ font: "var(--type-mono-small)", color: "var(--text-tertiary)", marginTop: 4 }}>{children}</div>;
+  const Pane = ({ theme, children }) => <div data-theme={theme} style={{ background: "var(--bg-primary)", color: "var(--text-primary)", padding: 16, display: "flex", flexDirection: "column", gap: 12, flex: 1, minWidth: 0, border: "1px solid var(--border-default)" }}>{children}</div>;
+  const Both = ({ render }) => <div style={{ display: "flex" }}><Pane theme="light">{render("light")}</Pane><Pane theme="dark">{render("dark")}</Pane></div>;
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<Both render={(t) => <>
+    <div style={{ margin: "0 -16px" }}><OfflineBanner pending={3} /></div>
+    <Skeleton width="70%" height={44} />
+    <div style={{ margin: "0 -16px" }}><Skeleton variant="row" /><Skeleton variant="row" /></div>
+    <EmptyState title="Chưa có giao dịch" action="Ghi khoản đầu tiên" illustrationLabel="empty · 64px 1-bit">Nói hoặc gõ “cà phê 45k” để bắt đầu.</EmptyState>
+    <ErrorState onAction={() => {}}>Kiểm tra kết nối mạng rồi thử lại.</ErrorState>
+  </>} />);
+});
+</script>
+</body></html>

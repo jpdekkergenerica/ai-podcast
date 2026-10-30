@@ -8,22 +8,20 @@ import os
 import re
 import secrets
 import shutil
-import socket
 import subprocess
 import sys
 import threading
 import time
-import calendar
 import webbrowser
-from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-import feedparser
 import yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
+
+from .feed_test import test_feeds
 
 ROOT = Path.cwd()
 PAGE = Path(__file__).with_name("ui_page.html")
@@ -216,32 +214,6 @@ def delete_episode(guid: str) -> str:
     run(["git", "push"], timeout=120)
     run(["gh", "workflow", "run", "daily.yml", "-f", "feed_only=true"])
     return "Aflevering verwijderd; de feed wordt opnieuw gepubliceerd."
-
-
-def test_feeds(topic: dict, lookback_hours: float) -> list[dict]:
-    keywords = [k for k in topic.get("keywords", []) if k.strip()]
-    pattern = re.compile("|".join(keywords), re.I) if keywords else None
-    cutoff = time.time() - lookback_hours * 3600
-    socket.setdefaulttimeout(20)
-
-    def one(url: str) -> dict:
-        try:
-            feed = feedparser.parse(url)
-        except Exception as e:  # noqa: BLE001
-            return {"url": url, "error": str(e)}
-        status = feed.get("status")
-        if not feed.entries:
-            return {"url": url, "status": status, "total": 0, "recent": 0, "matches": 0, "samples": [],
-                    "error": f"geen berichten (status {status})"}
-        recent = [e for e in feed.entries
-                  if not (e.get("published_parsed") or e.get("updated_parsed"))
-                  or calendar.timegm(e.get("published_parsed") or e.get("updated_parsed")) >= cutoff]
-        hit = [e for e in recent if not pattern or pattern.search(f"{e.get('title', '')} {e.get('summary', '')}")]
-        return {"url": url, "status": status, "total": len(feed.entries), "recent": len(recent),
-                "matches": len(hit), "samples": [e.get("title", "")[:90] for e in hit[:3]]}
-
-    with ThreadPoolExecutor(6) as pool:
-        return list(pool.map(one, [f for f in topic.get("feeds", []) if f.strip()]))
 
 
 # ---------- http ----------

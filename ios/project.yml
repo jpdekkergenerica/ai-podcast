@@ -1,0 +1,21 @@
+name: PersonalPodcast
+options:
+  bundleIdPrefix: nl.generica
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    PODCAST_WEB_URL: http://127.0.0.1:8766/ui_kits/podcast-app/mobile.html
+targets:
+  PersonalPodcast:
+    type: application
+    platform: iOS
+    sources:
+      - PersonalPodcast
+    settings:
+      base:
+        INFOPLIST_FILE: PersonalPodcast/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: nl.generica.personalpodcast
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: false

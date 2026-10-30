@@ -1,0 +1,39 @@
+/* Three families, one system. Line-heights snap to the 4px rhythm. */
+:root {
+  --font-pixel: "Geist Pixel Square", "Geist Mono", ui-monospace, monospace; /* DISPLAY ONLY, ≥24px */
+  --font-pixel-warn: "Geist Pixel Triangle", var(--font-pixel); /* warning figures only — pairs with --warning-* */
+  --font-pixel-grid: "Geist Pixel Grid", var(--font-pixel); /* AI processing / thinking text only */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* font shorthand: weight size/line-height family — pair with the matching --ls-* */
+  --type-display-xl: 400 56px/56px var(--font-pixel);
+  --type-display-l: 400 40px/44px var(--font-pixel);
+  --type-display-m: 400 32px/36px var(--font-pixel);
+  --type-display-s: 400 24px/28px var(--font-pixel);
+  --type-title: 600 20px/28px var(--font-sans);
+  --type-headline: 600 16px/24px var(--font-sans);
+  --type-body: 400 16px/24px var(--font-sans);
+  --type-body-small: 400 14px/20px var(--font-sans);
+  --type-label: 500 14px/20px var(--font-sans);
+  --type-caption: 400 12px/16px var(--font-sans);
+  --type-mono-amount: 500 16px/24px var(--font-mono);
+  --type-mono-l: 500 20px/28px var(--font-mono);
+  --type-mono-small: 400 12px/16px var(--font-mono);
+
+  --ls-display-xl: -0.01em;
+  --ls-display-l: 0;
+  --ls-display-m: 0;
+  --ls-display-s: 0;
+  --ls-title: -0.01em;
+  --ls-headline: -0.005em;
+  --ls-body: 0;
+  --ls-body-small: 0;
+  --ls-label: 0.005em;
+  --ls-caption: 0.01em;
+  --ls-mono: 0;
+
+  --weight-income: 600; /* + amounts */
+  --weight-expense: 400; /* − amounts */
+  --numeric: tabular-nums slashed-zero;
+}

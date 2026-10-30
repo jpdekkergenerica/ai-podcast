@@ -1,0 +1,36 @@
+<!-- @dsCard group="Components" viewport="700x960" name="Core controls" subtitle="Buttons, icon buttons, FAB, chips, segmented, tabs, avatar, switch, list row, page dots — all states, light + dark" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../_dev/ds-loader.js"></script>
+</head><body style="background:var(--bg-primary)">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const files = ["Button","IconButton","FAB","Chip","SegmentedControl","Tabs","Avatar","Switch","ListRow","PageDots","SignalDot"].map(n => `components/core/${n}.jsx`);
+MonseyReady(files).then(({ Button, IconButton, FAB, Chip, SegmentedControl, Tabs, Avatar, Switch, ListRow, PageDots, SignalDot }) => {
+  const L = ({ children }) => <div style={{ font: "var(--type-mono-small)", color: "var(--text-tertiary)", width: 64, flex: "none" }}>{children}</div>;
+  const Row = ({ label, children }) => <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}><L>{label}</L>{children}</div>;
+  const Pane = ({ theme }) => (
+    <div data-theme={theme} style={{ background: "var(--bg-primary)", color: "var(--text-primary)", padding: 16, display: "flex", flexDirection: "column", gap: 10, flex: 1, minWidth: 0, border: "1px solid var(--border-default)" }}>
+      <div style={{ font: "var(--type-mono-small)", color: "var(--text-secondary)" }}>{theme === "dark" ? "DARK" : "LIGHT"}</div>
+      <Row label="primary"><Button size="sm">Lưu</Button><Button size="sm" forceState="pressed">Lưu</Button><Button size="sm" forceState="focused">Lưu</Button><Button size="sm" disabled>Lưu</Button><Button size="sm" loading>Lưu</Button></Row>
+      <Row label="second."><Button size="sm" variant="secondary" icon="edit">Sửa</Button><Button size="sm" variant="secondary" forceState="pressed">Sửa</Button><Button size="sm" variant="secondary" disabled>Sửa</Button></Row>
+      <Row label="tertiary"><Button size="sm" variant="tertiary">Bỏ qua</Button><Button size="sm" variant="tertiary" forceState="pressed">Bỏ qua</Button><Button size="sm" variant="tertiary" disabled>Bỏ qua</Button></Row>
+      <Row label="destruct."><Button size="sm" variant="destructive">Xoá ví</Button><Button size="sm" variant="destructive" forceState="pressed">Xoá ví</Button></Row>
+      <Row label="icon"><IconButton icon="arrow-left" label="Quay lại" /><IconButton icon="sliders" label="Lọc" variant="outline" /><IconButton icon="sliders" label="Lọc" variant="outline" selected /><IconButton icon="mic" label="Nói" variant="filled" /><IconButton icon="camera" label="Chụp" variant="outline" disabled /></Row>
+      <Row label="fab"><FAB /><FAB forceState="pressed" /><FAB extended icon="mic" label="Ghi chi tiêu" /></Row>
+      <Row label="chips"><Chip selected>Tháng này</Chip><Chip icon="coffee" onRemove={() => {}}>Ăn uống</Chip><Chip disabled>Năm</Chip><Chip variant="code">USD</Chip></Row>
+      <SegmentedControl options={["Tuần", "Tháng", "Năm"]} value="Tháng" />
+      <Tabs tabs={[{ value: "a", label: "Chi tiêu", count: 42 }, { value: "b", label: "Thu nhập", count: 3 }, "Chuyển khoản"]} value="a" />
+      <Row label="misc"><Avatar name="Minh Anh" /><Avatar name="Trần Huy" size={40} /><Switch checked label="a" /><Switch label="b" /><Switch disabled label="c" /><PageDots index={1} /><SignalDot tone="positive" /><SignalDot tone="negative" /><SignalDot tone="warning" pending /><SignalDot tone="info" pending /></Row>
+      <div style={{ margin: "0 -16px" }}><ListRow icon="moon" label="Giao diện" value="Tối" onClick={() => {}} /><ListRow icon="lock" label="Khoá app" description="Face ID khi mở Monsey" trailing={<Switch checked label="Khoá app" />} /><ListRow icon="cloud-upload" label="Sao lưu & đồng bộ" pro onClick={() => {}} /><ListRow icon="trash" label="Xoá tài khoản" danger onClick={() => {}} /></div>
+    </div>
+  );
+  ReactDOM.createRoot(document.getElementById("root")).render(<div style={{ display: "flex", gap: 0 }}><Pane theme="light" /><Pane theme="dark" /></div>);
+});
+</script>
+</body></html>

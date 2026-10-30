@@ -1,10 +1,9 @@
-import json
 from dataclasses import dataclass, field
-from datetime import date, timedelta
-from pathlib import Path
+from datetime import date
 
 from .fetch import Item, fetch_topic
 from .llm import ask_json
+from .store import DEFAULT_STORE, ShowStore
 
 
 @dataclass
@@ -54,25 +53,14 @@ Antwoord uitsluitend met JSON: {{"scores": [{{"i": 0, "score": 7}}, ...]}}"""
     return scores
 
 
-COVERED = Path("covered.json")
+def load_covered(today: date, days: int, store: ShowStore | None = None) -> list[dict]:
+    """Berichten uit eerdere afleveringen van de laatste `days` dagen, vandaag meegerekend."""
+    return (store or DEFAULT_STORE).load_covered(today, days)
 
 
-def load_covered(today: date, days: int) -> list[dict]:
-    """Berichten uit eerdere afleveringen van de laatste `days` dagen, vandaag meegerekend, om herhaling te
-    voorkomen. days = 0 zet de controle uit (handig om met hetzelfde nieuws te testen)."""
-    if days <= 0 or not COVERED.exists():
-        return []
-    since = (today - timedelta(days=days)).isoformat()
-    return [c for c in json.loads(COVERED.read_text()) if c["date"] >= since]
-
-
-def save_covered(today: date, plans: list["TopicPlan"], keep_days: int = 14) -> None:
-    old = json.loads(COVERED.read_text()) if COVERED.exists() else []
-    since = (today - timedelta(days=keep_days)).isoformat()
-    kept = [c for c in old if c["date"] >= since]
-    kept += [{"date": today.isoformat(), "topic": p.name, "title": item.title, "link": item.link}
-             for p in plans for item, _ in p.items]
-    COVERED.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n")
+def save_covered(today: date, plans: list["TopicPlan"], keep_days: int = 14,
+                 store: ShowStore | None = None) -> None:
+    (store or DEFAULT_STORE).save_covered(today, plans, keep_days=keep_days)
 
 
 def drop_repeats(pool: list[tuple[Item, int]], covered: list[dict], model: str) -> list[tuple[Item, int]]:
@@ -176,8 +164,9 @@ def select(pool: list[tuple[Item, int]], budget: float, cfg: dict) -> list[Topic
     return sorted(plans.values(), key=lambda p: -p.minutes)
 
 
-def plan_episode(cfg: dict, today: date) -> list[TopicPlan]:
+def plan_episode(cfg: dict, today: date, store: ShowStore | None = None) -> list[TopicPlan]:
     rel, dur = cfg["relevance"], cfg["duration"]
+    store = store or DEFAULT_STORE
     pool: list[tuple[Item, int]] = []
     for topic in cfg["topics"]:
         items = fetch_topic(topic, rel["lookback_hours"], rel["max_candidates_per_topic"])
@@ -198,7 +187,7 @@ def plan_episode(cfg: dict, today: date) -> list[TopicPlan]:
         if key not in seen:
             seen.add(key)
             unique.append((item, score))
-    unique = drop_repeats(unique, load_covered(today, rel["repeat_days"]), cfg["models"]["scoring"])
+    unique = drop_repeats(unique, store.load_covered(today, rel["repeat_days"]), cfg["models"]["scoring"])
 
     budget = dur["max_minutes"] - dur["intro_outro_minutes"]  # ruimte voor haak, intro en synthese
     plans = select(unique, budget, cfg)

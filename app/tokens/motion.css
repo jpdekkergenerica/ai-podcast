@@ -1,0 +1,85 @@
+/* Monsey motion — "soft shell, pixel core".
+   Containers (buttons, chips, cards, sheets, screens) move on springs.
+   Digital content (digits, pixels, tower blocks, receipt lines) moves in steps.
+   Reduce Motion → every token collapses to a 150ms fade; --mk (motion distance factor) → 0. */
+:root {
+  /* legacy durations (still used by stepped content) */
+  --dur-100: 100ms;
+  --dur-150: 150ms;
+  --dur-200: 200ms;
+  --dur-250: 250ms;
+  --ease-step-4: steps(4, end);
+  --ease-step-8: steps(8, end);
+  --ease-fade: cubic-bezier(0.2, 0, 0, 1);
+  --cursor-blink: 1000ms; /* 500 on / 500 off, steps(1) */
+
+  /* spring/snappy — buttons, chips, toggles, tabs · ζ≈0.86, 0.5% overshoot */
+  --spring-snappy-dur: 250ms;
+  --spring-snappy: linear(0, 0.043, 0.142, 0.266, 0.395, 0.517, 0.625, 0.716, 0.791, 0.851, 0.897, 0.931, 0.957, 0.975, 0.987, 0.995, 1, 1.003, 1.005, 1.005, 1);
+  /* spring/smooth — cards, sheets, screen transitions, expand/collapse · ζ≈0.7, 4.6% settle */
+  --spring-smooth-dur: 350ms;
+  --spring-smooth: linear(0, 0.043, 0.148, 0.283, 0.428, 0.567, 0.691, 0.795, 0.878, 0.942, 0.987, 1.017, 1.035, 1.044, 1.046, 1.044, 1.039, 1.032, 1.026, 1.019, 1.014, 1.009, 1.005, 1.002, 1);
+  /* spring/bouncy — celebrations: save success, tier filled, ⊕ pop · ζ≈0.45, 20% overshoot */
+  --spring-bouncy-dur: 450ms;
+  --spring-bouncy: linear(0, 0.065, 0.226, 0.435, 0.652, 0.849, 1.007, 1.118, 1.182, 1.205, 1.196, 1.166, 1.124, 1.079, 1.038, 1.004, 0.979, 0.964, 0.958, 0.959, 0.965, 0.973, 0.982, 0.991, 0.998, 1.004, 1.007, 1.008, 1.009, 1.008, 1);
+  /* step/digital — digits, pixels, blocks, receipt lines */
+  --step-digital-fast: 150ms;
+  --step-digital: 250ms;
+  --step-digital-slow: 400ms;
+  --step-6: steps(6, end);
+  --step-8: steps(8, end);
+  --step-10: steps(10, end);
+
+  /* micro-interaction constants */
+  --press-scale: 0.97;
+  --press-darken: brightness(0.96);
+  --hold-scale: 1.08;
+  --sheet-under-scale: 0.96;
+  --mk: 1; /* motion distance multiplier */
+}
+
+@keyframes mn-blink { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes mn-step-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mn-shimmer { from { background-position: 0 0; } to { background-position: 64px 0; } }
+@keyframes mn-loader { 0% { opacity: 1; } 33% { opacity: .25; } 66% { opacity: .25; } 100% { opacity: 1; } }
+@keyframes mn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mn-row-in { from { opacity: 0; transform: translateY(calc(8px * var(--mk))); } to { opacity: 1; transform: none; } }
+@keyframes mn-row-flash { 0% { background: var(--positive-bg); } 70% { background: var(--positive-bg); } 100% { background: var(--bg-primary); } }
+@keyframes mn-row-grow { from { grid-template-rows: 0fr; } to { grid-template-rows: 1fr; } }
+@keyframes mn-toast-up { from { opacity: 0; transform: translateY(calc(32px * var(--mk))) scale(calc(1 - .04 * var(--mk))); } to { opacity: 1; transform: none; } }
+@keyframes mn-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes mn-shake { 0%, 100% { transform: none; } 16% { transform: translateX(calc(-6px * var(--mk))); } 33% { transform: translateX(calc(6px * var(--mk))); } 50% { transform: translateX(calc(-4px * var(--mk))); } 66% { transform: translateX(calc(4px * var(--mk))); } 83% { transform: translateX(calc(-2px * var(--mk))); } }
+@keyframes mn-pop { 0% { transform: scale(calc(1 - .4 * var(--mk))); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes mn-bounce-beat { 0% { transform: scale(1); } 40% { transform: scale(calc(1 + .14 * var(--mk))); } 100% { transform: scale(1); } }
+@keyframes mn-ring { from { transform: scale(1); opacity: .5; } to { transform: scale(calc(1 + .9 * var(--mk))); opacity: 0; } }
+@keyframes mn-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@keyframes mn-knob-stretch { 0%, 100% { width: 16px; } 45% { width: calc(16px + 8px * var(--mk)); } }
+@keyframes mn-spin-steps { to { transform: rotate(360deg); } }
+@keyframes mn-sign-in { from { transform: translateY(calc(-100% * var(--mk))); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mn-confetti { from { transform: translateY(0); opacity: 1; } 80% { opacity: 1; } to { transform: translateY(calc(420px * var(--mk))); opacity: 0; } }
+@keyframes mn-roll-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@keyframes mn-roll-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+@keyframes mn-blink-eyes { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.15); } }
+@keyframes mn-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(-2px * var(--mk))); } }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ease-step-4: var(--ease-fade); --ease-step-8: var(--ease-fade);
+    --step-6: var(--ease-fade); --step-8: var(--ease-fade); --step-10: var(--ease-fade);
+    --spring-snappy: var(--ease-fade); --spring-smooth: var(--ease-fade); --spring-bouncy: var(--ease-fade);
+    --spring-snappy-dur: 150ms; --spring-smooth-dur: 150ms; --spring-bouncy-dur: 150ms;
+    --step-digital-fast: 150ms; --step-digital: 150ms; --step-digital-slow: 150ms;
+    --press-scale: 1; --hold-scale: 1; --sheet-under-scale: 1; --mk: 0;
+    --cursor-blink: 0ms;
+  }
+}
+/* Same override, opt-in per subtree (docs & demos): <div data-reduce-motion> */
+[data-reduce-motion] {
+  --ease-step-4: var(--ease-fade); --ease-step-8: var(--ease-fade);
+  --step-6: var(--ease-fade); --step-8: var(--ease-fade); --step-10: var(--ease-fade);
+  --spring-snappy: var(--ease-fade); --spring-smooth: var(--ease-fade); --spring-bouncy: var(--ease-fade);
+  --spring-snappy-dur: 150ms; --spring-smooth-dur: 150ms; --spring-bouncy-dur: 150ms;
+  --step-digital-fast: 150ms; --step-digital: 150ms; --step-digital-slow: 150ms;
+  --press-scale: 1; --hold-scale: 1; --sheet-under-scale: 1; --mk: 0;
+  --cursor-blink: 0ms;
+}
