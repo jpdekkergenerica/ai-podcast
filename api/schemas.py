@@ -56,6 +56,7 @@ class ShowUpdate(BaseModel):
     relevance: dict[str, Any] | None = None
     voice: dict[str, Any] | None = None
     pronunciation: dict[str, str] | None = None
+    schedule: dict[str, Any] | None = None
     topics: list[TopicIn] | None = None
     active: bool | None = None
 
@@ -94,6 +95,7 @@ class ShowOut(BaseModel):
     models: dict[str, Any]
     voice: dict[str, Any]
     pronunciation: dict[str, str]
+    schedule: dict[str, Any]
     feed_token: str
     feed_url: str
     active: bool

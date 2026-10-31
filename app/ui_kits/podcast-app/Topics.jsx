@@ -128,7 +128,7 @@ export function Topics({ show, onBack, onSave, onTest }) {
         {!topics.length ? (
           <div style={{ padding: 24 }}>
             <EmptyState title="Nog geen onderwerpen" action="Eerste onderwerp" onAction={openNew}>
-              Jij bedenkt ze. Wij halen er elke ochtend het nieuws bij.
+              Jij bedenkt ze. Wij halen er het nieuws bij.
             </EmptyState>
           </div>
         ) : (

@@ -12,6 +12,7 @@ from .defaults import (
     DEFAULT_DURATION,
     DEFAULT_MODELS,
     DEFAULT_RELEVANCE,
+    DEFAULT_SCHEDULE,
     DEFAULT_VOICE,
     MAX_MINUTES_CAP,
 )
@@ -33,6 +34,10 @@ def media_url_for(show: Show, filename: str) -> str:
 def site_url_for(show: Show) -> str:
     """Basis-URL voor cover/chapters/transcripts (token gaat als query mee in de feed)."""
     return f"{public_base_url()}/shows/{show.id}/site"
+
+
+def merged_schedule(raw: dict | None) -> dict:
+    return {**DEFAULT_SCHEDULE, **(raw or {})}
 
 
 def show_to_cfg(show: Show) -> dict:

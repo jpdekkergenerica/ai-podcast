@@ -31,3 +31,11 @@ python -m tests.test_api        # auth, tenant-isolatie, limieten, feed-toegang
 
 Productie: zet `API_JWT_SECRET` (minstens 32 tekens), `APPLE_CLIENT_ID`, `PUBLIC_BASE_URL` (https) en laat `AUTH_DEV_MODE` weg; zonder geheim start de API niet.
 `WORKER_INLINE` staat standaard uit; draai `python -m worker.run loop` als aparte worker.
+
+## Planning
+
+Elke gebruiker kiest zelf of er automatisch een aflevering komt, op welke dagen en hoe laat (Aflevering → Planning).
+Standaard staat de planning **uit**, zodat er nooit ongevraagd kosten ontstaan; handmatig bouwen met de knop Bouw blijft mogelijk (1 per dag).
+De planning staat in `shows.schedule` (`enabled`, `days` 0 = maandag … 6 = zondag, `time` HH:MM, `timezone`). De worker (`python -m worker.run loop`)
+zet elke ronde de shows klaar die aan de beurt zijn (`enqueue_due`); een late start wordt tot 2 uur na het gekozen tijdstip ingehaald en er is hooguit één geplande run per dag.
+Zonder eigen worker kan `python -m worker.run enqueue-due` elke 15 minuten draaien (zie `.github/workflows/enqueue.yml`).

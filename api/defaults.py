@@ -44,3 +44,14 @@ MAX_TOPICS = 12
 MAX_FEEDS_PER_TOPIC = 20
 MAX_MANUAL_BUILDS_PER_DAY = 1
 MAX_MINUTES_CAP = 15.0
+
+# Planning: de gebruiker bepaalt dagen en tijd. Standaard uit, zodat er nooit ongevraagd kosten ontstaan.
+# days: 0 = maandag … 6 = zondag. time in lokale tijd van timezone.
+DEFAULT_SCHEDULE = {
+    "enabled": False,
+    "days": [0, 1, 2, 3, 4, 5, 6],
+    "time": "07:00",
+    "timezone": "Europe/Amsterdam",
+}
+# Een geplande run mag hooguit zoveel uur na het gekozen tijdstip nog starten (worker was even weg).
+SCHEDULE_CATCHUP_HOURS = 2

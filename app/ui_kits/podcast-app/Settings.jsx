@@ -3,7 +3,10 @@ import { TopAppBar } from "../../components/navigation/TopAppBar.jsx";
 import { TextField } from "../../components/forms/TextField.jsx";
 import { Button } from "../../components/core/Button.jsx";
 import { ListRow } from "../../components/core/ListRow.jsx";
-import { Card } from "../../components/core/Card.jsx";
+import { Card, SectionTitle } from "../../components/core/Card.jsx";
+import { Chip } from "../../components/core/Chip.jsx";
+import { Switch } from "../../components/core/Switch.jsx";
+import { DAYS, DEFAULT_SCHEDULE, deviceTimezone } from "./schedule.js";
 
 export function Settings({ show, onBack, onSave, onPronounce }) {
   const [title, setTitle] = useState(show.title);
@@ -12,9 +15,14 @@ export function Settings({ show, onBack, onSave, onPronounce }) {
   const [focus, setFocus] = useState(show.relevance?.focus ?? "Nederland");
   const [repeatDays, setRepeatDays] = useState(String(show.relevance?.repeat_days ?? 7));
   const [cta, setCta] = useState(show.call_to_action || "");
+  const [schedule, setSchedule] = useState({ ...DEFAULT_SCHEDULE, ...(show.schedule || {}) });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [ok, setOk] = useState(false);
+
+  const toggleDay = (d) => setSchedule((s) => ({
+    ...s, days: s.days.includes(d) ? s.days.filter((x) => x !== d) : [...s.days, d].sort(),
+  }));
 
   const save = async () => {
     setBusy(true); setError(""); setOk(false);
@@ -23,6 +31,7 @@ export function Settings({ show, onBack, onSave, onPronounce }) {
         title: title.trim(),
         description: description.trim(),
         call_to_action: cta.trim(),
+        schedule: { ...schedule, timezone: deviceTimezone(schedule.timezone) },
         duration: { ...(show.duration || {}), max_minutes: parseFloat(maxMinutes) || 15 },
         relevance: {
           ...(show.relevance || {}),
@@ -42,6 +51,34 @@ export function Settings({ show, onBack, onSave, onPronounce }) {
     <>
       <TopAppBar title="Aflevering" onBack={onBack} />
       <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div>
+          <SectionTitle>Planning</SectionTitle>
+          <Card padding={16} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ font: "var(--type-body)" }}>Automatisch nieuwe aflevering</span>
+                <span style={{ font: "var(--type-body-small)", color: "var(--text-secondary)" }}>
+                  {schedule.enabled ? "Jij bepaalt de dagen en het tijdstip" : "Uit: je bouwt zelf met de knop Bouw"}
+                </span>
+              </div>
+              <Switch checked={schedule.enabled} onChange={(v) => setSchedule({ ...schedule, enabled: v })} label="Automatisch nieuwe aflevering" />
+            </div>
+            {schedule.enabled && (
+              <>
+                <div>
+                  <div style={{ font: "var(--type-label)", marginBottom: 8 }}>Dagen</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {DAYS.map((name, d) => (
+                      <Chip key={d} selected={schedule.days.includes(d)} onClick={() => toggleDay(d)} style={{ padding: "0 10px", margin: 0 }}>{name}</Chip>
+                    ))}
+                  </div>
+                </div>
+                <TextField label="Tijdstip" type="time" value={schedule.time} onChange={(v) => setSchedule({ ...schedule, time: v })}
+                  helper={`Tijdzone: ${deviceTimezone(schedule.timezone)}. Start hooguit 2 uur te laat als er iets haperde.`} />
+              </>
+            )}
+          </Card>
+        </div>
         <TextField label="Titel" value={title} onChange={setTitle} />
         <TextField label="Beschrijving" value={description} onChange={setDescription} />
         <TextField label="Max. minuten" value={maxMinutes} onChange={setMaxMinutes} inputMode="decimal" />

@@ -1,8 +1,8 @@
-name: Dagelijks alle shows in de wachtrij
+name: Geplande shows in de wachtrij
 
 on:
   schedule:
-    - cron: "30 2 * * *"
+    - cron: "*/15 * * * *"  # elke show draait op het tijdstip dat de gebruiker koos; late starts tot 2 uur worden ingehaald
   workflow_dispatch:
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           STORAGE_ROOT: data/storage
           AUTH_DEV_MODE: "0"
         run: |
-          python -m worker.run enqueue-all
+          python -m worker.run enqueue-due
           # Verwerk tot de wachtrij leeg is (max 50 jobs per run)
           for i in $(seq 1 50); do
             n=$(python -m worker.run once | tee /dev/stderr | awk '{print $1}')

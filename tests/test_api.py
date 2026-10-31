@@ -172,6 +172,57 @@ def test_account_verwijderen() -> None:
     # opnieuw inloggen geeft een schone start
     assert client.get("/me/show", headers=login("weg")).status_code == 404
 
+def test_planning_validatie() -> None:
+    h = login("planning-validatie")
+    show = make_show(h)
+    assert show["schedule"]["enabled"] is False  # standaard uit: geen ongevraagde kosten
+    bad = [
+        {"enabled": True, "days": []},
+        {"days": [7]},
+        {"days": ["ma"]},
+        {"time": "25:00"},
+        {"time": "7:00"},
+        {"timezone": "Mars/Olympus"},
+        {"enabled": "ja"},
+    ]
+    for sched in bad:
+        res = client.patch("/me/show", headers=h, json={"schedule": sched})
+        assert res.status_code == 400, (sched, res.text)
+    res = client.patch("/me/show", headers=h, json={"schedule": {"enabled": True, "days": [4, 0, 0, 2], "time": "18:30"}})
+    assert res.status_code == 200, res.text
+    assert res.json()["schedule"] == {"enabled": True, "days": [0, 2, 4], "time": "18:30", "timezone": "Europe/Amsterdam"}
+
+
+def test_planning_per_gebruiker_in_de_worker() -> None:
+    from datetime import datetime, timezone
+    from worker.run import enqueue_due
+
+    maandag = lambda uur, minuut: datetime(2026, 11, 2, uur, minuut, tzinfo=timezone.utc)  # 2026-11-02 is een maandag, NL = UTC+1
+    a, b, c = login("plan-a"), login("plan-b"), login("plan-c")
+    make_show(a); make_show(b); make_show(c)
+    client.patch("/me/show", headers=a, json={"schedule": {"enabled": True, "days": [0], "time": "07:00"}})
+    client.patch("/me/show", headers=b, json={"schedule": {"enabled": True, "days": [1], "time": "07:00"}})
+    # c laat de planning uit
+
+    assert enqueue_due(maandag(5, 59)) == 0   # 06:59 lokaal: nog niet
+    assert enqueue_due(maandag(9, 10)) == 0   # 10:10 lokaal: venster van 2 uur voorbij
+    assert enqueue_due(maandag(6, 10)) == 1   # alleen a: gekozen dag en tijd
+    assert enqueue_due(maandag(6, 20)) == 0   # a heeft vandaag al een geplande run
+    assert [j["trigger"] for j in client.get("/me/jobs", headers=a).json()] == ["schedule"]
+    assert client.get("/me/jobs", headers=b).json() == []
+    assert client.get("/me/jobs", headers=c).json() == []
+
+
+def test_planning_zet_geen_tweede_job_naast_een_openstaande() -> None:
+    from datetime import datetime, timezone
+    from worker.run import enqueue_due
+
+    h = login("plan-open")
+    make_show(h)
+    client.patch("/me/show", headers=h, json={"schedule": {"enabled": True, "days": [0, 1, 2, 3, 4, 5, 6], "time": "07:00", "timezone": "UTC"}})
+    assert client.post("/me/build", headers=h, json={}).status_code == 200  # handmatige job staat open
+    assert enqueue_due(datetime(2026, 11, 2, 7, 5, tzinfo=timezone.utc)) == 0
+
 
 def main() -> None:
     tests = [value for name, value in globals().items() if name.startswith("test_") and callable(value)]

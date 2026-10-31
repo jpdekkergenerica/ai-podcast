@@ -7,7 +7,8 @@ import sys
 import tempfile
 import traceback
 from contextlib import redirect_stdout
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,8 +16,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from api.db import SessionLocal, init_db
+from api.defaults import SCHEDULE_CATCHUP_HOURS
+from api.limits import as_utc
 from api.models import Job, Show
-from api.show_config import DbShowStore, media_url_for, show_to_cfg
+from api.show_config import DbShowStore, media_url_for, merged_schedule, show_to_cfg
 from api.storage import site_dir, store_audio
 from podcast.__main__ import build
 from podcast.feed import write_site
@@ -145,10 +148,59 @@ def enqueue_all_active(trigger: str = "schedule") -> int:
         db.close()
 
 
+def schedule_due(show: Show, last_scheduled_at: datetime | None, now: datetime) -> bool:
+    """Is deze show nu aan de beurt volgens de planning van de gebruiker?
+
+    Ja als de planning aan staat, het lokaal een gekozen dag is, het gekozen tijdstip is bereikt (maar hooguit
+    SCHEDULE_CATCHUP_HOURS geleden, zodat een late activering niet meteen een run start) en er vandaag nog geen
+    geplande run is geweest."""
+    sched = merged_schedule(show.schedule)
+    if not sched["enabled"]:
+        return False
+    local = as_utc(now).astimezone(ZoneInfo(sched["timezone"]))
+    if local.weekday() not in sched["days"]:
+        return False
+    hh, mm = (int(x) for x in sched["time"].split(":"))
+    slot = local.replace(hour=hh, minute=mm, second=0, microsecond=0)
+    if not slot <= local < slot + timedelta(hours=SCHEDULE_CATCHUP_HOURS):
+        return False
+    if last_scheduled_at is not None and as_utc(last_scheduled_at).astimezone(ZoneInfo(sched["timezone"])).date() == local.date():
+        return False
+    return True
+
+
+def enqueue_due(now: datetime | None = None) -> int:
+    """Zet een job klaar voor elke show die volgens zijn eigen planning nu aan de beurt is."""
+    init_db()
+    now = now or datetime.now(timezone.utc)
+    db = SessionLocal()
+    try:
+        n = 0
+        for show in db.query(Show).filter(Show.active.is_(True)).all():
+            if not merged_schedule(show.schedule)["enabled"]:
+                continue
+            if db.query(Job).filter(Job.show_id == show.id, Job.status.in_(("queued", "running"))).first():
+                continue
+            last = (
+                db.query(Job.created_at)
+                .filter(Job.show_id == show.id, Job.trigger == "schedule")
+                .order_by(Job.created_at.desc())
+                .limit(1)
+                .scalar()
+            )
+            if schedule_due(show, last, now):
+                db.add(Job(show_id=show.id, status="queued", trigger="schedule"))
+                n += 1
+        db.commit()
+        return n
+    finally:
+        db.close()
+
+
 def main() -> None:
     import argparse
     ap = argparse.ArgumentParser(prog="worker")
-    ap.add_argument("command", choices=["once", "loop", "enqueue-all", "job"])
+    ap.add_argument("command", choices=["once", "loop", "enqueue-all", "enqueue-due", "job"])
     ap.add_argument("--job-id")
     ap.add_argument("--sleep", type=int, default=10)
     args = ap.parse_args()
@@ -159,6 +211,9 @@ def main() -> None:
     elif args.command == "enqueue-all":
         n = enqueue_all_active()
         print(f"{n} jobs in de wachtrij")
+    elif args.command == "enqueue-due":
+        n = enqueue_due()
+        print(f"{n} jobs in de wachtrij")
     elif args.command == "once":
         n = process_next(1)
         print(f"{n} job(s) verwerkt")
@@ -166,6 +221,7 @@ def main() -> None:
         import time
         print("Worker-loop…")
         while True:
+            enqueue_due()
             process_next(1)
             time.sleep(args.sleep)
 

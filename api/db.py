@@ -30,3 +30,17 @@ def init_db() -> None:
         Path = __import__("pathlib").Path
         Path("data").mkdir(exist_ok=True)
     Base.metadata.create_all(bind=engine)
+    _add_missing_columns()
+
+
+def _add_missing_columns() -> None:
+    """create_all voegt geen kolommen toe aan bestaande tabellen; doe dat hier voor nieuwe velden."""
+    from sqlalchemy import inspect, text
+    wanted = {"shows": [("schedule", "JSON")]}
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for table, cols in wanted.items():
+            have = {c["name"] for c in insp.get_columns(table)}
+            for name, kind in cols:
+                if name not in have:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))

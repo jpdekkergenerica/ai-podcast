@@ -53,7 +53,7 @@ export function Start({ onReady, authed = false }) {
     try {
       const show = await api.createShow({
         title: title.trim(),
-        description: "Elke ochtend een persoonlijke nieuwspodcast over jouw onderwerpen.",
+        description: "Een persoonlijke nieuwspodcast over jouw onderwerpen.",
         topics: [],
       });
       onReady(show);
@@ -72,9 +72,9 @@ export function Start({ onReady, authed = false }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
         {step === 0 && (
           <>
-            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)", textWrap: "balance" }}>Jouw ochtend, jouw podcast</h1>
+            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)", textWrap: "balance" }}>Jouw onderwerpen, jouw podcast</h1>
             <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>
-              Jij kiest de onderwerpen. Wij maken er elke ochtend een podcast van. Luisteren doe je in Apple Podcasts.
+              Jij kiest de onderwerpen. Wij maken er een podcast van. Luisteren doe je in Apple Podcasts.
             </p>
           </>
         )}
@@ -84,7 +84,7 @@ export function Start({ onReady, authed = false }) {
             <p style={{ margin: "0 0 16px", font: "var(--type-body)", color: "var(--text-secondary)" }}>
               Je kunt dit later altijd aanpassen.
             </p>
-            <TextField label="Podcastnaam" value={title} onChange={setTitle} placeholder="Mijn ochtendbriefing"
+            <TextField label="Podcastnaam" value={title} onChange={setTitle} placeholder="Mijn podcast"
               error={error && !title.trim() ? error : ""} />
           </>
         )}

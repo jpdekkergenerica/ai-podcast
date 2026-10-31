@@ -105,7 +105,7 @@ export function App({ theme: theme0 = "light", framed = true }) {
     screen = (
       <Home show={show} building={building}
         onCopyFeed={copyFeed} onOpenPodcasts={openPodcasts} onBuild={build}
-        onTopics={() => setTab("topics")} />
+        onTopics={() => setTab("topics")} onSettings={() => setTab("settings")} />
     );
   } else if (tab === "topics") {
     screen = (

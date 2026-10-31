@@ -1,6 +1,6 @@
 from .models import Job, Show
 from .schemas import EpisodeSummary, JobOut, ShowOut, TopicOut
-from .show_config import feed_url_for
+from .show_config import feed_url_for, merged_schedule
 
 
 def job_out(job: Job) -> JobOut:
@@ -34,6 +34,7 @@ def show_out(show: Show) -> ShowOut:
         models=show.models or {},
         voice=show.voice or {},
         pronunciation=dict(show.pronunciation or {}),
+        schedule=merged_schedule(show.schedule),
         feed_token=show.feed_token,
         feed_url=feed_url_for(show),
         active=show.active,

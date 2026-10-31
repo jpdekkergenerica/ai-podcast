@@ -29,7 +29,7 @@ from .defaults import (
     DEFAULT_RELEVANCE,
     DEFAULT_VOICE,
 )
-from .limits import assert_can_enqueue_manual, clamp_max_minutes, validate_duration, validate_topics
+from .limits import assert_can_enqueue_manual, clamp_max_minutes, validate_duration, validate_schedule, validate_topics
 from .models import Job, Show, Topic, User, new_feed_token
 from .schemas import (
     AppleLoginRequest,
@@ -192,6 +192,8 @@ def update_show(
     topics = data.pop("topics", None)
     if data.get("duration") is not None:
         validate_duration(data["duration"])
+    if data.get("schedule") is not None:
+        data["schedule"] = validate_schedule(data["schedule"])
     for key, value in data.items():
         setattr(show, key, value)
     if topics is not None:

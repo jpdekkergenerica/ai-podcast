@@ -45,6 +45,7 @@ class Show(Base):
     models: Mapped[dict] = mapped_column(JSON, default=dict)
     voice: Mapped[dict] = mapped_column(JSON, default=dict)
     pronunciation: Mapped[dict] = mapped_column(JSON, default=dict)
+    schedule: Mapped[dict] = mapped_column(JSON, default=dict)
     feed_token: Mapped[str] = mapped_column(String(64), default=new_feed_token, unique=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
