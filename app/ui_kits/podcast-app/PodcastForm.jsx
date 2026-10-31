@@ -4,6 +4,7 @@ import { Chip } from "../../components/core/Chip.jsx";
 import { IconButton } from "../../components/core/IconButton.jsx";
 import { ListRow } from "../../components/core/ListRow.jsx";
 import { Card } from "../../components/core/Card.jsx";
+import { Dialog } from "../../components/overlays/Dialog.jsx";
 import { TextField } from "../../components/forms/TextField.jsx";
 import { TopAppBar } from "../../components/navigation/TopAppBar.jsx";
 import { api } from "./api.js";
@@ -52,6 +53,7 @@ export function PodcastForm({ id, nav }) {
   const [cover, setCover] = useState({ mode: "keep", dataUrl: null, url: null, custom: false });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!editing) return;
@@ -125,13 +127,19 @@ export function PodcastForm({ id, nav }) {
     }
   };
 
+  const remove = async () => {
+    setBusy(true);
+    try { await api.deletePodcast(id); nav.done(null, "Podcast verwijderd", "ok"); }
+    catch (e) { setErrors({ form: e.message }); setBusy(false); setConfirmDelete(false); }
+  };
+
   if (!loaded) return (<><TopAppBar title="Podcast" onBack={nav.pop} /><Page><Muted>Laden…</Muted></Page></>);
 
   const e = errors;
   return (
     <>
       <TopAppBar title={editing ? "Podcast bewerken" : "Nieuwe podcast"} onBack={nav.pop} />
-      <Page style={{ paddingBottom: 32 }}>
+      <Page>
         <Group title="Basisgegevens">
           <TextField label="Naam" value={title} onChange={setTitle} placeholder="Bijvoorbeeld: Mijn technieuws" error={e.title} />
           <ListRow label="Omslag" description="Optioneel. Zonder eigen afbeelding gebruiken we een standaardomslag."
@@ -212,7 +220,12 @@ export function PodcastForm({ id, nav }) {
         {!editing && <Muted>Na het aanmaken maken we direct de eerste aflevering. Je hoeft niets te starten.</Muted>}
         {editing && <Muted>Wijzigingen gelden voor nieuwe afleveringen en starten zelf geen extra aflevering.</Muted>}
         <Button fullWidth size="lg" loading={busy} onClick={submit}>{editing ? "Wijzigingen opslaan" : "Podcast aanmaken"}</Button>
+        {editing && <Button fullWidth variant="destructive" disabled={busy} onClick={() => setConfirmDelete(true)}>Podcast verwijderen</Button>}
       </Page>
+      <Dialog open={confirmDelete} loading={busy} destructive title={`“${title}” verwijderen?`} confirmLabel="Verwijderen" cancelLabel="Annuleren"
+        onCancel={() => setConfirmDelete(false)} onConfirm={remove}>
+        De podcast, alle afleveringen en de feed verdwijnen. Dit kun je niet terugdraaien.
+      </Dialog>
     </>
   );
 }

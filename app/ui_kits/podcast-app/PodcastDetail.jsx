@@ -45,7 +45,7 @@ export function PodcastDetail({ id, nav }) {
   return (
     <>
       <TopAppBar title={p.title} onBack={nav.pop} actions={<Button size="sm" variant="tertiary" onClick={() => nav.push({ name: "form", id })}>Bewerken</Button>} />
-      <Page style={{ paddingBottom: 32 }}>
+      <Page>
         <Card padding={16} style={{ display: "flex", gap: 16 }}>
           <Cover url={p.cover_url} size={88} radius={12} />
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
@@ -104,7 +104,7 @@ export function PodcastDetail({ id, nav }) {
         title={confirm === "delete" ? `“${p.title}” verwijderen?` : "Nieuwe feedlink maken?"}
         destructive={confirm === "delete"} confirmLabel={confirm === "delete" ? "Verwijderen" : "Nieuwe link"} cancelLabel="Annuleren"
         onCancel={() => setConfirm(null)}
-        onConfirm={() => confirm === "delete" ? act(() => api.deletePodcast(id), () => nav.done(null, "Podcast verwijderd")) : act(() => api.rotateFeedToken(id))}>
+        onConfirm={() => confirm === "delete" ? act(() => api.deletePodcast(id), () => nav.done(null, "Podcast verwijderd", "ok")) : act(() => api.rotateFeedToken(id))}>
         {confirm === "delete"
           ? "De podcast, alle afleveringen en de feed verdwijnen. Dit kun je niet terugdraaien."
           : "De oude link stopt direct met werken. Voeg de nieuwe link opnieuw toe in Apple Podcasts."}

@@ -14,7 +14,7 @@ struct ContentView: View {
 
     var body: some View {
         WebView(url: startURL)
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container, edges: .all) // het toetsenbord blijft een eigen rand: de WebView krimpt mee
     }
 }
 
@@ -29,6 +29,9 @@ struct WebView: UIViewRepresentable {
         let view = WKWebView(frame: .zero, configuration: config)
         context.coordinator.webView = view
         view.scrollView.contentInsetAdjustmentBehavior = .never
+        // De pagina zelf scrolt nooit (dat deed hem wegschuiven bij het toetsenbord); de schermen scrollen in hun eigen gebied.
+        view.scrollView.isScrollEnabled = false
+        view.scrollView.bounces = false
         view.navigationDelegate = context.coordinator
         view.uiDelegate = context.coordinator
         view.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData))

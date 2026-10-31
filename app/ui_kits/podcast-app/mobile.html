@@ -16,8 +16,10 @@
 </script>
 <style>
   html, body, #root { height: 100%; margin: 0; background: var(--bg-primary); }
+  html, body { position: fixed; inset: 0; width: 100%; overflow: hidden; } /* het document scrolt niet; elk scherm heeft een eigen scrollgebied */
   #root { box-sizing: border-box; padding-top: env(safe-area-inset-top); }
   body { overscroll-behavior: none; }
+  [data-scroll], div { -webkit-overflow-scrolling: touch; }
 </style>
 </head>
 <body>

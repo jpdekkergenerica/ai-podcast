@@ -43,5 +43,5 @@ export const FieldError = ({ children }) => children ? <span role="alert" style=
 
 /** Pagina met scrollbare inhoud. */
 export function Page({ children, style }) {
-  return <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16, ...style }}>{children}</div>;
+  return <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px calc(24px + env(safe-area-inset-bottom, 0px))", display: "flex", flexDirection: "column", gap: 16, ...style }}>{children}</div>;
 }

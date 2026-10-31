@@ -46,11 +46,11 @@ export function App({ theme: theme0 = "light", framed = true }) {
     pop: () => setStack((s) => s.slice(0, -1)),
     toast: showToast,
     // klaar met een scherm: terug naar het overzicht met een melding
-    done: (saved, message) => {
+    done: (saved, message, kind = "error") => {
       setStack(saved && saved.id ? [{ name: "detail", id: saved.id }] : []);
       setTab("podcasts");
       setListKey((k) => k + 1);
-      if (message) showToast(message, "alert", "error");
+      if (message) kind === "error" ? showToast(message, "alert", "error") : showToast(message, "check");
     },
   };
 

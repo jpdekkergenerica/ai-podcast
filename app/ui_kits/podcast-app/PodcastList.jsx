@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../components/core/Button.jsx";
+import { IconButton } from "../../components/core/IconButton.jsx";
+import { Dialog } from "../../components/overlays/Dialog.jsx";
 import { Card } from "../../components/core/Card.jsx";
 import { EmptyState } from "../../components/feedback/EmptyState.jsx";
 import { BrandHeader } from "../../components/navigation/BrandHeader.jsx";
@@ -11,6 +13,8 @@ import { Cover, Muted, Page, StatusPill } from "./ui.jsx";
 export function PodcastList({ nav }) {
   const [podcasts, setPodcasts] = useState(null);
   const [error, setError] = useState("");
+  const [target, setTarget] = useState(null); // podcast die verwijderd gaat worden
+  const [busy, setBusy] = useState(false);
 
   const load = async () => {
     try { setPodcasts(await api.podcasts()); setError(""); } catch (e) { setError(e.message); }
@@ -24,6 +28,12 @@ export function PodcastList({ nav }) {
   }, [podcasts]);
 
   const add = () => nav.push({ name: "form" });
+  const remove = async () => {
+    setBusy(true);
+    try { await api.deletePodcast(target.id); setTarget(null); nav.toast("Podcast verwijderd", "check"); await load(); }
+    catch (e) { nav.toast(e.message, "alert", "error"); }
+    finally { setBusy(false); }
+  };
 
   return (
     <>
@@ -36,9 +46,9 @@ export function PodcastList({ nav }) {
           </EmptyState>
         )}
         {podcasts?.map((p) => (
-          <button key={p.id} type="button" onClick={() => nav.push({ name: "detail", id: p.id })}
-            style={{ all: "unset", cursor: "pointer", display: "block", WebkitTapHighlightColor: "transparent" }}>
-            <Card padding={12} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Card key={p.id} padding={12} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <button type="button" onClick={() => nav.push({ name: "detail", id: p.id })}
+              style={{ all: "unset", cursor: "pointer", flex: 1, minWidth: 0, display: "flex", gap: 12, alignItems: "center", WebkitTapHighlightColor: "transparent" }}>
               <Cover url={p.cover_url} size={64} />
               <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
                 <span style={{ font: "var(--type-headline)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</span>
@@ -46,11 +56,16 @@ export function PodcastList({ nav }) {
                 <Muted>{p.next_run ? `Volgende: ${p.next_run.local}` : p.paused ? "Gepauzeerd" : ""}</Muted>
                 <div><StatusPill status={p.status} /></div>
               </div>
-            </Card>
-          </button>
+            </button>
+            <IconButton icon="trash" label={`${p.title} verwijderen`} onClick={() => setTarget(p)} />
+          </Card>
         ))}
         {podcasts && podcasts.length > 0 && <Button fullWidth icon="plus" onClick={add}>Podcast toevoegen</Button>}
       </Page>
+      <Dialog open={!!target} loading={busy} destructive title={target ? `“${target.title}” verwijderen?` : ""}
+        confirmLabel="Verwijderen" cancelLabel="Annuleren" onCancel={() => setTarget(null)} onConfirm={remove}>
+        De podcast, alle afleveringen en de feed verdwijnen. Dit kun je niet terugdraaien.
+      </Dialog>
     </>
   );
 }

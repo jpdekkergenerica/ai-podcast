@@ -17,7 +17,7 @@ export function EpisodeDetail({ id, guid, nav }) {
   return (
     <>
       <TopAppBar title="Aflevering" onBack={nav.pop} />
-      <Page style={{ paddingBottom: 32 }}>
+      <Page>
         <div>
           <h1 style={{ margin: 0, font: "var(--type-display-s)", letterSpacing: "var(--ls-display-s)", textWrap: "balance" }}>{ep.title}</h1>
           <Muted style={{ display: "block", marginTop: 6 }}>{dateText(ep.published || ep.date)} · {minutesText(ep.duration)}</Muted>
