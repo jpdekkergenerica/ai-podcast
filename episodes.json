@@ -1,5 +1,81 @@
 [
   {
+    "guid": "episode-2026-10-31-0935",
+    "date": "2026-10-31",
+    "published": "2026-10-31T09:35:56+01:00",
+    "title": "Waarom daalt ASML en blijven telefoons en laptops duurder?",
+    "summary": "Een teleurstellende prognose van Intel drukte de chipaandelen en de AEX, terwijl het geheugentekort telefoons en laptops tot zeker 2028 duur houdt. Verder: Mistrals reuzenmodel Le Chonk en ophef over AI-eisen bij Proton.\n\nIn deze aflevering: Opening; Intel trekt de beurs omlaag; Chiptekort: duurdere apparaten; Mistrals reuzenmodel Le Chonk; Proton-ceo en AI op de werkvloer; Samenvatting.\n\nBronnen: De Telegraaf - Financieel, NU - Economie, Tweakers Nieuws.\n\nDeze aflevering is automatisch met AI samengesteld en wordt ingesproken door een synthetische stem.",
+    "tag": "ep-2026-10-31-0935",
+    "file": "2026-10-31-0935.mp3",
+    "size": 6726282,
+    "duration": 420,
+    "blurb": "Een teleurstellende prognose van Intel drukte de chipaandelen en de AEX, terwijl het geheugentekort telefoons en laptops tot zeker 2028 duur houdt. Verder: Mistrals reuzenmodel Le Chonk en ophef over AI-eisen bij Proton.",
+    "chapters": [
+      {
+        "title": "Opening",
+        "start": 0.0,
+        "end": 49.9,
+        "text": "Een teleurstellende prognose van één Amerikaanse chipmaker, en ineens voelt de hele Amsterdamse beurs het. Dat gebeurde vandaag. Intel zakte flink weg op de Nasdaq, en eerder op de dag kregen ASM International, ASML en Besi al zware klappen. Maar wat betekent dat eigenlijk voor jou? Het antwoord zit niet alleen op de beurs, maar ook in je zak en op je bureau. Het tekort aan chips blijft namelijk nog jaren duren, en dat merk je aan de prijs van je volgende telefoon of laptop. Daarna kijk ik naar twee AI-verhalen: een Frans model van een biljoen parameters dat openbaar is gemaakt, en een bedrijfsbaas die precies wilde weten hoe zijn mensen AI gebruiken. Je luistert naar Nynke's Podcast, zaterdag eenendertig oktober."
+      },
+      {
+        "title": "Intel trekt de beurs omlaag",
+        "start": 49.9,
+        "end": 132.3,
+        "text": "Eerst die beurs. Intel, de Amerikaanse chipproducent, ging stevig onderuit op de Nasdaq. De reden: een teleurstellende prognose. Dat meldt De Telegraaf. Het mooie, of eigenlijk het lastige, is hoe snel zoiets doorwerkt. Eerder op de dag hadden de Nederlandse chipleveranciers ASM International, ASML en Besi het al zwaar te verduren. Let even op: ASM International is een ander bedrijf dan ASML, al lijken de namen op elkaar. Beide kregen klappen. En toch is het geen verhaal van een beurs die overal in elkaar zakt. Andere bedrijven in de AEX, zoals Universal Music Group, Relx en Wolters Kluwer, sloten duidelijk hoger. De Amsterdamse beursgraadmeter verloor uiteindelijk nul komma zeven procent. Dat zegt iets over hoe gevoelig de chipsector is voor één slecht bericht uit de keten. Eén zwakke prognose van een grote speler, en de rest wordt meegetrokken. Wat de bron niet vertelt, is hoe lang dit effect aanhoudt. Eén dag beurs is nog geen trend. Wat jij kunt doen: kijk of je eigen beleggingen, bijvoorbeeld via een indexfonds, veel gewicht hebben in chipbedrijven, en houd in de gaten of Intels waarschuwing een uitzondering blijkt of het begin van een patroon."
+      },
+      {
+        "title": "Chiptekort: duurdere apparaten",
+        "start": 132.3,
+        "end": 192.6,
+        "text": "Dan het andere gevolg van de chipwereld, en dit raakt je portemonnee direct. Volgens NU.nl komt er voorlopig geen einde aan het tekort aan werkgeheugen voor elektronische apparaten. Het tekort houdt tot zeker tweeduizend achtentwintig aan. Concreet: ook het komende jaar blijven de prijzen voor onder meer telefoons en laptops hoog. Denk aan dat moment waarop je een nieuwe laptop zoekt, en je merkt dat de prijs niet meer meebeweegt met wat je gewend was. Het opvallende is wat fabrikanten zelf verwachten. Zij houden er rekening mee dat ze minder producten gaan verkopen. Dus het tekort drukt niet alleen op jouw budget, het remt ook de bedrijven die de apparaten maken. Wat we niet weten, is hoe sterk de prijzen precies blijven stijgen, want dat meldt de bron niet. De takeaway: heb je nog een werkende telefoon of laptop, dan is uitstel van aanschaf voorlopig geen gek idee, want er is weinig reden om op lagere prijzen te wachten die snel komen."
+      },
+      {
+        "title": "Mistrals reuzenmodel Le Chonk",
+        "start": 192.6,
+        "end": 247.3,
+        "text": "Op naar AI. Het Franse AI-bedrijf Mistral heeft de weights van zijn Large 4-model openbaar gemaakt, meldt Tweakers. Eerder deze maand werd het al aangekondigd: het krachtigste model van het bedrijf, ook wel Le Chonk genoemd. Wat is dat eigenlijk, een openweightmodel? Kort gezegd: de weights, de getrainde kern van het model, zijn openbaar beschikbaar. Anderen kunnen er dus zelf mee aan de slag. Het model bestaat uit een biljoen parameters. Daarmee is het het grootste openweightmodel buiten China. Dat is een stevige positie voor een Europees bedrijf. De bron zegt niets over hoe goed het model in de praktijk presteert, dus daar kan ik niets over beweren. Wat je kunt onthouden: grote, open AI-modellen komen niet alleen uit de Verenigde Staten of China. Houd in de gaten wat ontwikkelaars er in de komende tijd mee gaan bouwen."
+      },
+      {
+        "title": "Proton-ceo en AI op de werkvloer",
+        "start": 247.3,
+        "end": 309.5,
+        "text": "Tot slot een verhaal dat dichter bij het werk staat. Volgens Tweakers zou Proton-ceo Andy Yen hersollicitatiegesprekken met werknemers over hun AI-gebruik hebben geannuleerd. De achtergrond komt van 404 Media. Yen wilde met die gesprekken onderzoeken hoe zijn werknemers AI gebruiken. En als zij niet genoeg AI zouden inzetten, zou dat mogelijk kunnen leiden tot ontslag. Stel je voor dat je baas dat tegen jou zegt. Dan ga je AI toch anders bekijken? Niet als hulpmiddel, maar als eis. Let wel op de voorzichtige formulering: het gaat om berichtgeving, met woorden als zou en mogelijk. Het is dus niet bevestigd hoe het precies zat, en de gesprekken gaan in elk geval niet door. Wat je hieruit meeneemt: de druk om AI te gebruiken kan op de werkvloer groter worden, ook als niemand je precies uitlegt wat er van je wordt verwacht. Als je dat zelf nog niet hebt besproken met je leidinggevende, is dit een goed moment om te vragen wat men van je verwacht."
+      },
+      {
+        "title": "Samenvatting",
+        "start": 309.5,
+        "end": 420.0,
+        "text": "Laten we het samenbrengen. Vandaag zagen we hoe kwetsbaar de chipsector is voor één slecht bericht. Intel waarschuwde met een teleurstellende prognose, ASM International, ASML en Besi kregen klappen, en de AEX sloot nul komma zeven procent lager. Tegelijk deden Universal Music Group, Relx en Wolters Kluwer het juist goed. Het beeld is dus niet dat alles daalt, maar dat chipaandelen onder een vergrootglas liggen. Dat sluit aan op het tweede verhaal. Het tekort aan werkgeheugen houdt tot zeker tweeduizend achtentwintig aan, telefoons en laptops blijven duur, en fabrikanten rekenen op lagere verkopen. Chips zijn dus tegelijk een beursverhaal en een verhaal over wat jij betaalt voor je apparaten. Dan AI, waar twee kanten zichtbaar werden. Mistral maakte zijn Large 4-model openbaar, een model van een biljoen parameters, het grootste openweightmodel buiten China. En bij Proton zou de ceo hebben willen onderzoeken hoe werknemers AI gebruiken, met mogelijk ontslag als gevolg bij te weinig gebruik. De ene kant gaat over wat technisch mogelijk wordt, de andere over wat er van mensen wordt verwacht. Wat blijft hangen? Ten eerste: één slecht bericht uit de chipketen kan veel bedrijven raken, maar niet allemaal. Ten tweede: wachten op lagere prijzen voor je apparaten is voorlopig weinig kansrijk. En ten derde: AI verschuift van nieuwsgierigheid naar verwachting, en dat merk je mogelijk ook op je eigen werk. Wil je bijblijven, dan is het handig om iemand in je omgeving te hebben die dezelfde ontwikkelingen volgt. Stuur deze aflevering door naar één persoon die ook wil bijblijven."
+      }
+    ],
+    "sources": [
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Zware domper bij Intel doet Nasdaq pijn en raakt ook AEX",
+        "link": "https://www.telegraaf.nl/financieel/zware-domper-bij-intel-doet-nasdaq-pijn-en-raakt-ook-aex/163832344.html",
+        "source": "De Telegraaf - Financieel"
+      },
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Telefoons en laptops steeds duurder, tekort aan chips houdt tot zeker 2028 aan",
+        "link": "https://www.nu.nl/tech/6414689/telefoons-en-laptops-steeds-duurder-tekort-aan-chips-houdt-tot-zeker-2028-aan.html",
+        "source": "NU - Economie"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "Mistrals grootste openweightmodel Le Chonk is uit",
+        "link": "https://tweakers.net/nieuws/253970/mistrals-grootste-openweightmodel-le-chonk-is-uit.html",
+        "source": "Tweakers Nieuws"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "'Proton-ceo schrapt hersollicitatiegesprekken met werknemers over AI-gebruik'",
+        "link": "https://tweakers.net/nieuws/253986/proton-ceo-schrapt-hersollicitatiegesprekken-met-werknemers-over-ai-gebruik.html",
+        "source": "Tweakers Nieuws"
+      }
+    ]
+  },
+  {
     "guid": "episode-2026-10-30-0948",
     "date": "2026-10-30",
     "published": "2026-10-30T09:48:50+01:00",
