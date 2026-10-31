@@ -21,6 +21,7 @@ export function App({ theme: theme0 = "light", framed = true }) {
   const [theme, setTheme] = useState(theme0);
   const [show, setShow] = useState(null);
   const [booting, setBooting] = useState(true);
+  const [authed, setAuthed] = useState(false); // ingelogd, maar nog geen show
   const [tab, setTab] = useState("home");
   const [stack, setStack] = useState(null); // "pronounce" | null
   const [toast, setToast] = useState(null);
@@ -38,8 +39,9 @@ export function App({ theme: theme0 = "light", framed = true }) {
       try {
         const s = await api.getShow();
         setShow(s);
-      } catch {
-        setToken("");
+      } catch (e) {
+        if (e.status === 404) setAuthed(true);
+        else setToken("");
       } finally {
         setBooting(false);
       }
@@ -94,9 +96,9 @@ export function App({ theme: theme0 = "light", framed = true }) {
 
   let screen;
   if (booting) {
-    screen = <div style={{ flex: 1, display: "grid", placeItems: "center", font: "var(--type-mono-small)" }}>Laden…</div>;
+    screen = <div style={{ flex: 1, display: "grid", placeItems: "center", font: "var(--type-body-small)", color: "var(--text-secondary)" }}>Laden…</div>;
   } else if (!show) {
-    screen = <Start onReady={(s) => { setShow(s); setTab("home"); }} />;
+    screen = <Start authed={authed} onReady={(s) => { setShow(s); setTab("home"); }} />;
   } else if (stack === "pronounce") {
     screen = <Pronounce show={show} onBack={() => setStack(null)} onSave={saveShow} />;
   } else if (tab === "home") {
@@ -119,8 +121,8 @@ export function App({ theme: theme0 = "light", framed = true }) {
     screen = (
       <Account show={show} theme={theme} setTheme={setTheme} onBack={() => setTab("home")}
         onRotate={async () => { await api.rotateToken(); await refresh(); setToast({ message: "Nieuw feed-token", icon: "check" }); }}
-        onLogout={() => { setToken(""); setShow(null); }}
-        onDelete={async () => { await api.deleteAccount(); setToken(""); setShow(null); }} />
+        onLogout={() => { setToken(""); setShow(null); setAuthed(false); }}
+        onDelete={async () => { await api.deleteAccount(); setToken(""); setShow(null); setAuthed(false); }} />
     );
   }
 
@@ -128,13 +130,13 @@ export function App({ theme: theme0 = "light", framed = true }) {
     <>
       {screen}
       {toast && (
-        <div style={{ position: "absolute", left: 16, right: 16, bottom: show && !stack && tab ? 140 : 24, zIndex: 40 }}>
+        <div style={{ position: "absolute", left: 16, right: 16, bottom: show && !stack && tab ? 80 : 24, zIndex: 40 }}>
           <Toast message={toast.message} icon={toast.icon} variant={toast.variant || "default"} />
         </div>
       )}
       {show && !stack && !booting && (
         <TabBar tabs={TABS} value={tab} onChange={setTab}
-          onCenter={build} centerLabel="Bouw" />
+          onCenter={build} centerLabel="Bouw" centerPressed={building} />
       )}
     </>
   );

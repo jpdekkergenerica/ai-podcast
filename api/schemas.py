@@ -37,7 +37,7 @@ class TopicOut(TopicIn):
 class ShowCreate(BaseModel):
     title: str
     description: str = ""
-    author: str = "Personal Podcast"
+    author: str = "yourownpod"
     email: str = ""
     language: str = "nl"
     call_to_action: str | None = None

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TopAppBar } from "../../components/navigation/TopAppBar.jsx";
 import { ListRow } from "../../components/core/ListRow.jsx";
+import { Card } from "../../components/core/Card.jsx";
 import { Button } from "../../components/core/Button.jsx";
 import { TextField } from "../../components/forms/TextField.jsx";
 import { EmptyState } from "../../components/feedback/EmptyState.jsx";
@@ -92,7 +93,7 @@ export function Topics({ show, onBack, onSave, onTest }) {
     return (
       <>
         <TopAppBar title={edit === "new" ? "Nieuw onderwerp" : "Onderwerp"} onBack={() => setEdit(null)} />
-        <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
           <TextField label="Naam" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
           <TextField label="Beschrijving" value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} />
           <TextField label="Trefwoorden" value={draft.keywords} onChange={(v) => setDraft({ ...draft, keywords: v })}
@@ -101,16 +102,16 @@ export function Topics({ show, onBack, onSave, onTest }) {
             helper="Eén URL per regel" />
           {error && <span style={{ font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</span>}
           {testOut && (
-            <div style={{ border: "var(--border-1) solid var(--border-default)", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+            <Card padding={12} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {testOut.map((r) => (
                 <div key={r.url} style={{ font: "var(--type-body-small)" }}>
-                  <div style={{ fontWeight: 600 }}>{r.url.replace(/^https?:\/\//, "").slice(0, 48)}</div>
+                  <div style={{ fontWeight: 500 }}>{r.url.replace(/^https?:\/\//, "").slice(0, 48)}</div>
                   {r.error ? <span style={{ color: "var(--negative-text)" }}>{r.error}</span>
                     : <span style={{ color: "var(--text-secondary)" }}>{r.matches} treffers · {r.recent} recent</span>}
                   {(r.samples || []).map((s) => <div key={s} style={{ color: "var(--text-tertiary)" }}>· {s}</div>)}
                 </div>
               ))}
-            </div>
+            </Card>
           )}
           <Button fullWidth variant="secondary" loading={busy} onClick={runTest}>Test feeds</Button>
           <Button fullWidth loading={busy} onClick={saveDraft}>Opslaan</Button>
@@ -123,20 +124,24 @@ export function Topics({ show, onBack, onSave, onTest }) {
   return (
     <>
       <TopAppBar title="Onderwerpen" onBack={onBack} actions={<Button size="sm" variant="tertiary" onClick={openNew}>Toevoegen</Button>} />
-      <div style={{ flex: 1, overflowY: "auto" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
         {!topics.length ? (
           <div style={{ padding: 24 }}>
             <EmptyState title="Nog geen onderwerpen" action="Eerste onderwerp" onAction={openNew}>
               Jij bedenkt ze. Wij halen er elke ochtend het nieuws bij.
             </EmptyState>
           </div>
-        ) : topics.map((t, i) => (
-          <ListRow key={t.id || t.name + i} icon="flag" label={t.name}
-            description={`${(t.feeds || []).length} feeds · ${(t.keywords || []).length} trefwoorden`}
-            onClick={() => openEdit(i)} divider={i > 0} />
-        ))}
+        ) : (
+          <Card padding={0}>
+            {topics.map((t, i) => (
+              <ListRow key={t.id || t.name + i} icon="flag" label={t.name}
+                description={`${(t.feeds || []).length} feeds · ${(t.keywords || []).length} trefwoorden`}
+                onClick={() => openEdit(i)} divider={i > 0} />
+            ))}
+          </Card>
+        )}
       </div>
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: "0 16px 16px" }}>
         <Button fullWidth icon="plus" onClick={openNew}>Onderwerp toevoegen</Button>
       </div>
     </>

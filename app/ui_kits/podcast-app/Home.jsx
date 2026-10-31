@@ -3,6 +3,8 @@ import { InsightCard } from "../../components/ai/InsightCard.jsx";
 import { Button } from "../../components/core/Button.jsx";
 import { ListRow } from "../../components/core/ListRow.jsx";
 import { Chip } from "../../components/core/Chip.jsx";
+import { Card, SectionTitle } from "../../components/core/Card.jsx";
+import { BrandHeader } from "../../components/navigation/BrandHeader.jsx";
 
 function jobLabel(job) {
   if (!job) return "Nog geen run";
@@ -16,14 +18,11 @@ export function Home({ show, onCopyFeed, onOpenPodcasts, onBuild, onTopics, buil
   const mins = show.duration?.max_minutes ?? 15;
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 52, padding: "0 4px 0 16px", flex: "none" }}>
-        <span style={{ font: "400 24px/28px var(--font-pixel)" }}>podcast</span>
-        <Chip variant="code">{mins} MIN</Chip>
-      </div>
+      <BrandHeader actions={<Chip variant="code">{mins} MIN</Chip>} />
       <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none" }}>
-        <div style={{ padding: "8px 16px 20px" }}>
-          <div style={{ font: "600 28px/34px var(--font-sans)", letterSpacing: "-0.02em" }}>{show.title}</div>
-          <div style={{ marginTop: 6, font: "var(--type-body-small)", color: "var(--text-secondary)", textWrap: "pretty" }}>
+        <div style={{ padding: "20px 16px 16px" }}>
+          <div style={{ font: "var(--type-display-m)", letterSpacing: "var(--ls-display-m)", textWrap: "balance" }}>{show.title}</div>
+          <div style={{ marginTop: 4, font: "var(--type-body-small)", color: "var(--text-secondary)", textWrap: "pretty" }}>
             {show.description || "Persoonlijke ochtendbriefing op jouw onderwerpen."}
           </div>
         </div>
@@ -38,21 +37,29 @@ export function Home({ show, onCopyFeed, onOpenPodcasts, onBuild, onTopics, buil
               {ep.date} · {Math.round(ep.duration / 60)} min · {jobLabel(job)}
             </InsightCard>
           ) : (
-            <InsightCard title="Nog geen aflevering" tone="warning" icon="sparkles" action="Bouw nu" onAction={onBuild}>
+            <InsightCard title="Nog geen aflevering" tone="info" icon="sparkles" action="Bouw nu" onAction={onBuild}>
               Voeg onderwerpen toe en start een build. Daarna volg je de feed in Apple Podcasts.
             </InsightCard>
           )}
         </div>
 
-        <div style={{ padding: "8px 16px", font: "var(--type-headline)" }}>Feed</div>
-        <ListRow icon="copy" label="Kopieer privé-feed" description="Plak in Apple Podcasts → Volg via URL" onClick={onCopyFeed} divider={false} />
-        <ListRow icon="play" label="Open Podcasts" description="Luisteren gebeurt buiten deze app" onClick={onOpenPodcasts} />
+        <div style={{ padding: "0 16px 16px" }}>
+          <SectionTitle>Feed</SectionTitle>
+          <Card padding={0}>
+            <ListRow icon="copy" label="Kopieer privé-feed" description="Plak in Apple Podcasts → Volg via URL" onClick={onCopyFeed} divider={false} />
+            <ListRow icon="play" label="Open Podcasts" description="Luisteren gebeurt buiten deze app" onClick={onOpenPodcasts} />
+          </Card>
+        </div>
 
-        <div style={{ padding: "16px 16px 8px", font: "var(--type-headline)" }}>Status</div>
-        <ListRow icon="repeat" label="Laatste run" value={jobLabel(job)} chevron={false} divider={false} />
-        <ListRow icon="hash" label="Onderwerpen" value={String(show.topics?.length || 0)} onClick={onTopics} />
+        <div style={{ padding: "0 16px 16px" }}>
+          <SectionTitle>Status</SectionTitle>
+          <Card padding={0}>
+            <ListRow icon="repeat" label="Laatste run" value={jobLabel(job)} chevron={false} divider={false} />
+            <ListRow icon="hash" label="Onderwerpen" value={String(show.topics?.length || 0)} onClick={onTopics} />
+          </Card>
+        </div>
 
-        <div style={{ padding: 16 }}>
+        <div style={{ padding: "0 16px 24px" }}>
           <Button fullWidth loading={building} onClick={onBuild} icon="sparkles">Bouw nu</Button>
         </div>
       </div>

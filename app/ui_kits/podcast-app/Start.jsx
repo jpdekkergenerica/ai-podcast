@@ -1,25 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../../components/core/Button.jsx";
 import { TextField } from "../../components/forms/TextField.jsx";
+import { BrandMark } from "../../components/navigation/BrandHeader.jsx";
 import { PageDots } from "../../components/core/PageDots.jsx";
-import { api, setToken } from "./api.js";
+import { api, setToken, hasNativeApple, nativeAppleSignIn } from "./api.js";
 
-/** Onboarding: belofte → login → show-naam. Monsey: Geist Pixel alleen voor display ≥24px. */
-export function Start({ onReady }) {
-  const [step, setStep] = useState(0);
+/** Start: Sign in with Apple (zolang er geen login is) → show-naam. Monsey: Geist Pixel alleen voor display ≥24px. */
+export function Start({ onReady, authed = false }) {
+  const [step, setStep] = useState(authed ? 1 : 0);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [devAuth, setDevAuth] = useState(false);
 
-  const login = async () => {
+  useEffect(() => {
+    api.health().then((h) => setDevAuth(!!h.dev_auth)).catch(() => {});
+  }, []);
+
+  const finishLogin = async (res) => {
+    setToken(res.access_token);
+    if (res.has_show) onReady(await api.getShow());
+    else setStep(1);
+  };
+
+  const appleLogin = async () => {
     setBusy(true); setError("");
     try {
-      const res = await api.devLogin();
-      setToken(res.access_token);
-      if (res.has_show) {
-        const show = await api.getShow();
-        onReady(show);
-      } else setStep(2);
+      if (!hasNativeApple()) throw new Error("Sign in with Apple werkt alleen in de app.");
+      const { identityToken, email } = await nativeAppleSignIn();
+      await finishLogin(await api.appleLogin(identityToken, email));
+    } catch (e) {
+      setError(e.message || "Inloggen mislukt");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const devLogin = async () => {
+    setBusy(true); setError("");
+    try {
+      await finishLogin(await api.devLogin());
     } catch (e) {
       setError(e.message || "Inloggen mislukt. Draait de API?");
     } finally {
@@ -45,11 +65,14 @@ export function Start({ onReady }) {
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px 16px 16px", gap: 24 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "32px 20px 24px", gap: 24, background: "var(--bg-primary)" }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--type-headline)", letterSpacing: "-0.01em" }}>
+        <BrandMark />yourownpod
+      </span>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
         {step === 0 && (
           <>
-            <span style={{ font: "400 28px/32px var(--font-pixel)", letterSpacing: "-0.02em" }}>jouw ochtend</span>
+            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)", textWrap: "balance" }}>Jouw ochtend, jouw podcast</h1>
             <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>
               Jij kiest de onderwerpen. Wij maken er elke ochtend een podcast van. Luisteren doe je in Apple Podcasts.
             </p>
@@ -57,32 +80,28 @@ export function Start({ onReady }) {
         )}
         {step === 1 && (
           <>
-            <span style={{ font: "400 28px/32px var(--font-pixel)" }}>inloggen</span>
-            <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>
-              In productie via Sign in with Apple. Nu: ontwikkel-login om de kit te testen.
+            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)" }}>Geef je podcast een naam</h1>
+            <p style={{ margin: "0 0 16px", font: "var(--type-body)", color: "var(--text-secondary)" }}>
+              Je kunt dit later altijd aanpassen.
             </p>
+            <TextField label="Podcastnaam" value={title} onChange={setTitle} placeholder="Mijn ochtendbriefing"
+              error={error && !title.trim() ? error : ""} />
           </>
         )}
-        {step === 2 && (
-          <>
-            <span style={{ font: "400 28px/32px var(--font-pixel)" }}>naam</span>
-            <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)" }}>
-              Hoe heet jouw podcast?
-            </p>
-            <TextField label="Podcastnaam" value={title} onChange={setTitle} error={error && !title.trim() ? error : ""} />
-          </>
-        )}
-        {error && step !== 2 && (
-          <p style={{ margin: 0, font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</p>
-        )}
-        {error && step === 2 && title.trim() && (
-          <p style={{ margin: 0, font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</p>
+        {error && !(step === 1 && !title.trim()) && (
+          <p style={{ margin: "8px 0 0", font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</p>
         )}
       </div>
-      <PageDots count={3} index={step} />
-      {step === 0 && <Button fullWidth onClick={() => setStep(1)}>Verder</Button>}
-      {step === 1 && <Button fullWidth loading={busy} onClick={login}>Doorgaan</Button>}
-      {step === 2 && <Button fullWidth loading={busy} onClick={create}>Podcast maken</Button>}
+      <PageDots count={2} index={step} />
+      {step === 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Button fullWidth variant="secondary" size="lg" loading={busy} onClick={appleLogin}>
+            <span style={{ fontFamily: "-apple-system, system-ui", fontSize: 20, marginRight: 2, color: "var(--text-primary)" }} aria-hidden>{"\uF8FF"}</span> Doorgaan met Apple
+          </Button>
+          {devAuth && <Button fullWidth variant="tertiary" disabled={busy} onClick={devLogin}>Ontwikkel-login</Button>}
+        </div>
+      )}
+      {step === 1 && <Button fullWidth size="lg" loading={busy} onClick={create}>Podcast maken</Button>}
     </div>
   );
 }

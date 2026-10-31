@@ -2,11 +2,11 @@ import React from "react";
 import { Icon } from "../core/Icon.jsx";
 import { Button } from "../core/Button.jsx";
 
-/** Centered modal with 2px frame. destructive → warning icon, explicit verb button + "Huỷ". */
-export function Dialog({ open = true, title, children, confirmLabel = "Đồng ý", cancelLabel = "Huỷ", onConfirm, onCancel, destructive, inline, loading }) {
+/** Centered modal with 2px frame. destructive → warning icon, explicit verb button + "Annuleren". */
+export function Dialog({ open = true, title, children, confirmLabel = "Akkoord", cancelLabel = "Annuleren", onConfirm, onCancel, destructive, inline, loading }) {
   if (!open) return null;
   const box = (
-    <div role="alertdialog" aria-label={title} style={{ width: "100%", maxWidth: 320, boxSizing: "border-box", background: "var(--bg-primary)", color: "var(--text-primary)", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-float)", border: "var(--float-border)", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+    <div role="alertdialog" aria-label={title} style={{ width: "100%", maxWidth: 320, boxSizing: "border-box", background: "var(--bg-card)", color: "var(--text-primary)", borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-float)", border: "var(--float-border)", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
       {destructive && <Icon name="warning-box" filled color="var(--negative-fill)" onColor="var(--negative-on)" />}
       <span style={{ font: "var(--type-title)", letterSpacing: "var(--ls-title)", textWrap: "pretty" }}>{title}</span>
       {children && <div style={{ font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>{children}</div>}

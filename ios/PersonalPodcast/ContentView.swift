@@ -1,5 +1,6 @@
 import SwiftUI
 import WebKit
+import AuthenticationServices
 
 /// Host voor de Monsey-config-UI. Luisteren gebeurt in Apple Podcasts; deze app is alleen configuratie.
 struct ContentView: View {
@@ -23,10 +24,12 @@ struct WebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
+        config.userContentController.add(context.coordinator, name: "appleSignIn")
         let view = WKWebView(frame: .zero, configuration: config)
+        context.coordinator.webView = view
         view.scrollView.contentInsetAdjustmentBehavior = .never
         view.navigationDelegate = context.coordinator
-        view.load(URLRequest(url: url))
+        view.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData))
         return view
     }
 
@@ -34,7 +37,51 @@ struct WebView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    /// Brug tussen de webpagina en Sign in with Apple: JS stuurt "appleSignIn", het resultaat gaat terug via `__appleSignInResult`.
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler,
+                             ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+        weak var webView: WKWebView?
+
+        func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard message.name == "appleSignIn" else { return }
+            let request = ASAuthorizationAppleIDProvider().createRequest()
+            request.requestedScopes = [.email]
+            let auth = ASAuthorizationController(authorizationRequests: [request])
+            auth.delegate = self
+            auth.presentationContextProvider = self
+            auth.performRequests()
+        }
+
+        func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+            webView?.window ?? ASPresentationAnchor()
+        }
+
+        func authorizationController(controller: ASAuthorizationController,
+                                     didCompleteWithAuthorization authorization: ASAuthorization) {
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                  let data = credential.identityToken,
+                  let token = String(data: data, encoding: .utf8) else {
+                send(["error": "Apple gaf geen token terug"])
+                return
+            }
+            var payload: [String: Any] = ["identityToken": token]
+            if let email = credential.email { payload["email"] = email }
+            send(payload)
+        }
+
+        func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+            let cancelled = (error as? ASAuthorizationError)?.code == .canceled
+            send(["error": cancelled ? "Inloggen geannuleerd" : "Inloggen met Apple mislukt: \(error.localizedDescription)"])
+        }
+
+        private func send(_ payload: [String: Any]) {
+            guard let json = try? JSONSerialization.data(withJSONObject: payload),
+                  let text = String(data: json, encoding: .utf8) else { return }
+            DispatchQueue.main.async {
+                self.webView?.evaluateJavaScript("window.__appleSignInResult(\(text))")
+            }
+        }
+
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {

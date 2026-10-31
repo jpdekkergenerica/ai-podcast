@@ -35,7 +35,7 @@ class Show(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
-    author: Mapped[str] = mapped_column(String(200), default="Personal Podcast")
+    author: Mapped[str] = mapped_column(String(200), default="yourownpod")
     email: Mapped[str] = mapped_column(String(320), default="")
     language: Mapped[str] = mapped_column(String(16), default="nl")
     call_to_action: Mapped[str] = mapped_column(Text, default="")

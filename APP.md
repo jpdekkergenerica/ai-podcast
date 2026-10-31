@@ -1,4 +1,4 @@
-# Multi-tenant config-app
+# yourownpod: multi-tenant config-app
 
 ## Stack
 

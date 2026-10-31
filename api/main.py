@@ -45,7 +45,7 @@ from .schemas import (
 from .serializers import job_out, show_out
 from .storage import audio_path, site_dir, show_dir
 
-app = FastAPI(title="Personal Podcast Config API", version="0.1.0")
+app = FastAPI(title="yourownpod API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
@@ -162,7 +162,7 @@ def create_show(
         user_id=user.id,
         title=body.title.strip(),
         description=body.description.strip(),
-        author=body.author.strip() or "Personal Podcast",
+        author=body.author.strip() or "yourownpod",
         email=body.email.strip(),
         language=body.language or "nl",
         call_to_action=body.call_to_action or DEFAULT_CALL_TO_ACTION,
@@ -315,7 +315,7 @@ def private_site(show_id: str, path: str, token: str = Query(...), db: Session =
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy() -> str:
     return """<!doctype html><html lang="nl"><meta charset="utf-8">
-<title>Privacy — Personal Podcast</title>
+<title>Privacy — yourownpod</title>
 <body style="font-family:system-ui;max-width:40rem;margin:2rem auto;padding:0 1rem;line-height:1.5">
 <h1>Privacy</h1>
 <p>Deze app bewaart je Apple-accountidentificatie, e-mailadres (indien gedeeld),

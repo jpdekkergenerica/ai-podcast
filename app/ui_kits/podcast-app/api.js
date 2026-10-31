@@ -25,7 +25,9 @@ async function req(path, opts = {}) {
   try { data = text ? JSON.parse(text) : null; } catch { data = { detail: text }; }
   if (!res.ok) {
     const msg = (data && (data.detail || data.message || data.error)) || res.statusText;
-    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
@@ -47,3 +49,13 @@ export const api = {
   jobs: () => req("/me/jobs"),
   deleteAccount: () => req("/me/account", { method: "DELETE" }),
 };
+
+/** Sign in with Apple via de iOS-host (WKScriptMessageHandler "appleSignIn"). Null buiten de app. */
+export const hasNativeApple = () => !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.appleSignIn);
+
+export function nativeAppleSignIn() {
+  return new Promise((resolve, reject) => {
+    window.__appleSignInResult = (res) => (res && res.identityToken ? resolve(res) : reject(new Error((res && res.error) || "Apple-login geannuleerd")));
+    window.webkit.messageHandlers.appleSignIn.postMessage({});
+  });
+}

@@ -1,0 +1,111 @@
+/* Guardia — AI Insurance Dashboard Kit (Figma), toegepast op yourownpod.
+   Gelegd over de Monsey-tokens: dezelfde variabelen, andere waarden. Pagina #fbfbfb, witte kaarten met 1px rand (#eeeff2),
+   paars #72188b als enige merkkleur, Geist Medium voor koppen, knoppen 6px, velden 8px, kaarten 12px. */
+:root {
+  --purple-900: #4d0f5f;
+  --purple-700: #5c1270;
+  --purple-600: #72188b; /* primair */
+  --purple-500: #7d1a99;
+  --purple-400: #9748ad;
+  --purple-300: #d1b4d9;
+  --purple-100: #f2e8f5;
+  --purple-50: #f8f2fa;
+
+  --bg-primary: #fbfbfb;
+  --bg-card: #ffffff;
+  --bg-secondary: #f4f4f6;
+  --bg-tertiary: #eeeff2;
+  --bg-base: #fbfbfb; --bg-raised: #ffffff; --bg-elevated: #ffffff; --bg-overlay: #ffffff;
+  --bg-group: #ffffff; --bg-group-page: #fbfbfb; --bg-group-sheet: #ffffff;
+  --bg-float: #ffffff; --bg-pill: #f4f4f6;
+  --bg-inverse: var(--purple-600);
+  --bg-inverse-pressed: var(--purple-700);
+  --bg-pressed: var(--purple-50);
+  --bg-disabled: #eeeff2;
+  --bg-tint: var(--purple-100);
+  --toast-bg: #171717; --toast-fg: #ffffff;
+  --switch-off-track: #d9dce3; --switch-off-knob: #ffffff; --switch-on-track: var(--purple-600); --switch-on-knob: #ffffff;
+  --scrim: rgba(13, 13, 18, 0.24);
+  --overlay: rgba(13, 13, 18, 0.48);
+
+  --text-primary: #171717;
+  --text-secondary: #666d80;
+  --text-tertiary: #949494;
+  --text-inverse: #ffffff;
+  --text-disabled: #a4abb8;
+  --text-brand: var(--purple-600);
+
+  --border-subtle: #eeeff2;
+  --border-default: #eeeff2;
+  --border-control: #d9dce3;
+  --border-strong: #d9dce3;
+
+  --info-text: var(--purple-600); --info-signal: var(--purple-600); --info-fill: var(--purple-600); --info-on: #ffffff; --info-bg: var(--purple-100);
+  --positive-text: #2f7a3e; --positive-signal: #409851; --positive-fill: #409851; --positive-on: #ffffff; --positive-bg: rgba(64, 152, 81, 0.10);
+  --negative-fill-pressed: #a82020;
+  --focus-ring: var(--purple-600);
+
+  --chart-ink: var(--purple-600); --chart-step-1: var(--purple-400); --chart-step-2: var(--purple-300); --chart-track: var(--purple-100);
+
+  /* Vorm */
+  --radius-btn: 6px;
+  --radius-input: 8px;
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgba(13, 13, 18, 0.04);
+  --shadow-btn: 0 1px 2px rgba(13, 13, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --shadow-btn-secondary: 0 1px 2px rgba(13, 13, 18, 0.06);
+  --shadow-float: 0 8px 24px rgba(13, 13, 18, 0.10);
+
+  /* Typografie: Geist (Medium voor koppen), geen pixelfont meer */
+  --font-pixel: var(--font-sans);
+  --font-pixel-warn: var(--font-sans);
+  --font-pixel-grid: var(--font-sans);
+  --type-display-xl: 500 40px/52px var(--font-sans);
+  --type-display-l: 500 32px/42px var(--font-sans);
+  --type-display-m: 500 28px/36px var(--font-sans);
+  --type-display-s: 500 24px/32px var(--font-sans);
+  --type-title: 500 20px/28px var(--font-sans);
+  --type-headline: 500 16px/24px var(--font-sans);
+  --type-label: 500 14px/20px var(--font-sans);
+  --ls-display-xl: -0.02em; --ls-display-l: -0.02em; --ls-display-m: -0.015em; --ls-display-s: -0.01em;
+  --ls-title: -0.01em; --ls-headline: 0; --ls-label: 0;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0d0d12;
+  --bg-card: #16161d;
+  --bg-secondary: #16161d;
+  --bg-tertiary: #272835;
+  --bg-base: #0d0d12; --bg-raised: #16161d; --bg-elevated: #1c1c25; --bg-overlay: #1c1c25;
+  --bg-group: #16161d; --bg-group-page: #0d0d12; --bg-group-sheet: #1c1c25;
+  --bg-float: #16161d; --bg-pill: #1c1c25;
+  --bg-inverse: var(--purple-400);
+  --bg-inverse-pressed: #8a3fa0;
+  --bg-pressed: #1c1c25;
+  --bg-disabled: #1c1c25;
+  --bg-tint: #2a1a31;
+  --toast-bg: #272835; --toast-fg: #f8f9fb;
+  --switch-off-track: #272835; --switch-off-knob: #808897; --switch-on-track: var(--purple-400); --switch-on-knob: #ffffff;
+  --scrim: rgba(0, 0, 0, 0.5);
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --text-primary: #f8f9fb;
+  --text-secondary: #a4abb8;
+  --text-tertiary: #808897;
+  --text-inverse: #ffffff;
+  --text-disabled: #4a4f5c;
+  --text-brand: #c58ad8;
+
+  --border-subtle: #272835;
+  --border-default: #272835;
+  --border-control: #3a3c4d;
+  --border-strong: #3a3c4d;
+
+  --info-text: #c58ad8; --info-signal: #c58ad8; --info-fill: var(--purple-400); --info-on: #ffffff; --info-bg: #2a1a31;
+  --positive-text: #5fc474; --positive-signal: #5fc474; --positive-fill: #409851; --positive-on: #ffffff; --positive-bg: rgba(95, 196, 116, 0.16); --negative-fill-pressed: #d9463d;
+  --focus-ring: #c58ad8;
+
+  --chart-ink: #c58ad8; --chart-step-1: var(--purple-400); --chart-step-2: #5c1270; --chart-track: #2a1a31;
+
+  --shadow-card: none; --shadow-btn: inset 0 1px 0 rgba(255, 255, 255, 0.14); --shadow-btn-secondary: none; --shadow-float: 0 0 0 1px #272835;
+}

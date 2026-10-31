@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { animate, haptic } from "./motion.js";
 
-/** Toggle 44×26. Off → light gray track, white knob left (clearly off). On → ink track, white knob right.
+/** Toggle 44×26. Off → light gray track, white knob left (clearly off). On → brand-purple track, white knob right.
     Motion: knob slides on spring/snappy and stretches ~8px toward its travel mid-way. Haptic: selection. */
 export function Switch({ checked, onChange, disabled, label, style }) {
   const knob = useRef(null);

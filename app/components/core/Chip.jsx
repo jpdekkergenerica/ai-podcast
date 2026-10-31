@@ -6,7 +6,7 @@ import { haptic } from "./motion.js";
     Motion: selecting grows the ink fill from the centre (spring/snappy, ~200ms) and draws a checkmark in. Haptic: selection. */
 export function Chip({ children, selected, disabled, icon, onRemove, variant = "filter", onClick, forceState, style }) {
   if (variant === "code") {
-    return <span style={{ display: "inline-flex", alignItems: "center", height: 20, padding: "0 4px", border: "var(--border-1) solid var(--border-strong)", borderRadius: "var(--radius-xs)", font: "var(--type-mono-small)", fontWeight: 500, letterSpacing: "0.04em", color: "var(--text-primary)", ...style }}>{children}</span>;
+    return <span style={{ display: "inline-flex", alignItems: "center", height: 22, padding: "0 6px", border: "var(--border-1) solid var(--purple-300)", background: "var(--bg-tint)", borderRadius: "var(--radius-xs)", font: "var(--type-mono-small)", fontWeight: 500, letterSpacing: "0.04em", color: "var(--text-brand)", ...style }}>{children}</span>;
   }
   const inv = selected && !disabled;
   const check = !icon && !onRemove;
@@ -17,10 +17,10 @@ export function Chip({ children, selected, disabled, icon, onRemove, variant = "
       style={{
         position: "relative", overflow: "hidden", isolation: "isolate", flexShrink: 0,
         display: "inline-flex", alignItems: "center", gap: 0, height: 32, padding: icon ? "0 12px 0 8px" : "0 12px", boxSizing: "border-box",
-        background: forceState === "pressed" && !inv ? "var(--bg-pressed)" : "var(--bg-primary)",
+        background: forceState === "pressed" && !inv ? "var(--bg-pressed)" : "var(--bg-card)",
         color: disabled ? "var(--text-disabled)" : inv ? "var(--text-inverse)" : "var(--text-primary)",
         border: "var(--border-1) solid " + (disabled ? "var(--border-default)" : inv ? "var(--bg-inverse)" : "var(--border-control)"),
-        borderRadius: "var(--radius-full)", font: "var(--type-label)", whiteSpace: "nowrap", cursor: disabled ? "default" : "pointer",
+        borderRadius: "var(--radius-btn)", font: "var(--type-label)", whiteSpace: "nowrap", cursor: disabled ? "default" : "pointer",
         outline: forceState === "focused" ? "var(--border-2) solid var(--focus-ring)" : undefined, outlineOffset: 2,
         transition: "color " + ease + ", border-color " + ease,
         /* 32px visual, 44px hit area */ margin: "6px 0", ...style,
@@ -35,7 +35,7 @@ export function Chip({ children, selected, disabled, icon, onRemove, variant = "
         </span>
       )}
       {children}
-      {onRemove && <span onClick={(e) => { e.stopPropagation(); haptic("light", "Chip remove"); onRemove(); }} aria-label="Bỏ lọc" style={{ display: "inline-flex", marginRight: -6, marginLeft: 4 }}><Icon name="close" /></span>}
+      {onRemove && <span onClick={(e) => { e.stopPropagation(); haptic("light", "Chip remove"); onRemove(); }} aria-label="Filter weghalen" style={{ display: "inline-flex", marginRight: -6, marginLeft: 4 }}><Icon name="close" /></span>}
     </button>
   );
 }

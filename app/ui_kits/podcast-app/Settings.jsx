@@ -3,6 +3,7 @@ import { TopAppBar } from "../../components/navigation/TopAppBar.jsx";
 import { TextField } from "../../components/forms/TextField.jsx";
 import { Button } from "../../components/core/Button.jsx";
 import { ListRow } from "../../components/core/ListRow.jsx";
+import { Card } from "../../components/core/Card.jsx";
 
 export function Settings({ show, onBack, onSave, onPronounce }) {
   const [title, setTitle] = useState(show.title);
@@ -40,7 +41,7 @@ export function Settings({ show, onBack, onSave, onPronounce }) {
   return (
     <>
       <TopAppBar title="Aflevering" onBack={onBack} />
-      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
         <TextField label="Titel" value={title} onChange={setTitle} />
         <TextField label="Beschrijving" value={description} onChange={setDescription} />
         <TextField label="Max. minuten" value={maxMinutes} onChange={setMaxMinutes} inputMode="decimal" />
@@ -101,7 +102,7 @@ export function Pronounce({ show, onBack, onSave }) {
     <>
       <TopAppBar title="Uitspraak" onBack={onBack} />
       <div style={{ flex: 1, overflowY: "auto" }}>
-        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
           <p style={{ margin: 0, font: "var(--type-body-small)", color: "var(--text-secondary)" }}>
             Vaste uitspraken winnen altijd van wat de app zelf leert. Term is hoofdlettergevoelig.
           </p>
@@ -112,10 +113,16 @@ export function Pronounce({ show, onBack, onSave }) {
         </div>
         {Object.keys(map).length === 0 ? (
           <div style={{ padding: 16, font: "var(--type-body-small)", color: "var(--text-tertiary)" }}>Nog geen vaste termen</div>
-        ) : Object.entries(map).map(([k, v], i) => (
-          <ListRow key={k} label={k} value={v} chevron={false} divider={i > 0}
-            trailing={<Button size="sm" variant="tertiary" onClick={() => remove(k)}>Verwijder</Button>} />
-        ))}
+        ) : (
+          <div style={{ padding: "0 16px 16px" }}>
+            <Card padding={0}>
+              {Object.entries(map).map(([k, v], i) => (
+                <ListRow key={k} label={k} value={v} chevron={false} divider={i > 0}
+                  trailing={<Button size="sm" variant="tertiary" onClick={() => remove(k)}>Verwijder</Button>} />
+              ))}
+            </Card>
+          </div>
+        )}
       </div>
     </>
   );

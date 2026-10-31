@@ -1,6 +1,6 @@
-# Config-UI (Monsey kit)
+# Config-UI (Guardia-stijl)
 
-Persoonlijke podcast-config-app gebouwd met het Monsey design system uit `brondata/` (Paper/LED, Geist Pixel display, soft shell / pixel core).
+yourownpod: config-app in de stijl van het **Guardia** UI-kit (`brondata/Guardia - AI Insurance Dashboard Kit`): pagina #fbfbfb, witte kaarten met 1px rand en 12px radius, paars #72188b als merkkleur, Geist Medium, knoppen 6px, velden 8px. De tokens staan in `tokens/guardia.css` en liggen over de oorspronkelijke Monsey-componenten heen (zelfde variabelen, nieuwe waarden). Licht en donker volgen dezelfde structuur.
 
 ## Schermen
 
