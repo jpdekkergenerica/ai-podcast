@@ -67,7 +67,7 @@ export function Start({ onReady, authed = false }) {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "32px 20px 24px", gap: 24, background: "var(--bg-primary)" }}>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--type-headline)", letterSpacing: "-0.01em" }}>
-        <BrandMark />yourownpod
+        <BrandMark size={40} />yourownpod
       </span>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
         {step === 0 && (
