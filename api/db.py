@@ -36,7 +36,12 @@ def init_db() -> None:
 def _add_missing_columns() -> None:
     """create_all voegt geen kolommen toe aan bestaande tabellen; doe dat hier voor nieuwe velden."""
     from sqlalchemy import inspect, text
-    wanted = {"shows": [("schedule", "JSON")]}
+    wanted = {
+        "shows": [("schedule", "JSON"), ("style", "VARCHAR(16) DEFAULT 'informeel'"), ("cover_file", "VARCHAR(200)")],
+        "users": [("notify_new", "BOOLEAN DEFAULT TRUE"), ("notify_failed", "BOOLEAN DEFAULT TRUE")],
+        "episodes": [("period_start", "VARCHAR(40) DEFAULT ''"), ("period_end", "VARCHAR(40) DEFAULT ''")],
+        "jobs": [("scheduled_for", "VARCHAR(10)"), ("attempts", "INTEGER DEFAULT 0"), ("run_after", "TIMESTAMP")],
+    }
     insp = inspect(engine)
     with engine.begin() as conn:
         for table, cols in wanted.items():

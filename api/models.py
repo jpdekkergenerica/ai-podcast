@@ -23,9 +23,25 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     apple_sub: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    notify_new: Mapped[bool] = mapped_column(Boolean, default=True)  # push bij een nieuwe aflevering
+    notify_failed: Mapped[bool] = mapped_column(Boolean, default=True)  # push bij een mislukte generatie
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     shows: Mapped[list["Show"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    devices: Mapped[list["Device"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class Device(Base):
+    """Een iOS-toestel voor pushmeldingen (APNs-token)."""
+    __tablename__ = "devices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    platform: Mapped[str] = mapped_column(String(16), default="ios")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped[User] = relationship(back_populates="devices")
 
 
 class Show(Base):
@@ -46,6 +62,8 @@ class Show(Base):
     voice: Mapped[dict] = mapped_column(JSON, default=dict)
     pronunciation: Mapped[dict] = mapped_column(JSON, default=dict)
     schedule: Mapped[dict] = mapped_column(JSON, default=dict)
+    style: Mapped[str] = mapped_column(String(16), default="informeel")  # zakelijk | informeel | verhalend
+    cover_file: Mapped[str | None] = mapped_column(String(200), nullable=True)  # eigen omslag in de opslag; None = standaardomslag
     feed_token: Mapped[str] = mapped_column(String(64), default=new_feed_token, unique=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -63,6 +81,25 @@ class Show(Base):
         back_populates="show", cascade="all, delete-orphan")
     jobs: Mapped[list["Job"]] = relationship(
         back_populates="show", cascade="all, delete-orphan", order_by="Job.created_at.desc()")
+    sources: Mapped[list["Source"]] = relationship(
+        back_populates="show", cascade="all, delete-orphan", order_by="Source.created_at")
+
+
+class Source(Base):
+    """Eigen bron van de gebruiker (website of RSS), per podcast."""
+    __tablename__ = "sources"
+    __table_args__ = (UniqueConstraint("show_id", "url", name="uq_source_url"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    show_id: Mapped[str] = mapped_column(ForeignKey("shows.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str] = mapped_column(String(1000))
+    kind: Mapped[str] = mapped_column(String(16), default="rss")  # rss | website
+    name: Mapped[str] = mapped_column(String(200), default="")
+    feed_url: Mapped[str] = mapped_column(String(1000), default="")  # gevonden RSS-adres bij een website
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    show: Mapped["Show"] = relationship(back_populates="sources")
 
 
 class Topic(Base):
@@ -70,7 +107,7 @@ class Topic(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     show_id: Mapped[str] = mapped_column(ForeignKey("shows.id", ondelete="CASCADE"), index=True)
-    name: Mapped[str] = mapped_column(String(200))
+    name: Mapped[str] = mapped_column(String(200))  # vrije tekst van de gebruiker
     description: Mapped[str] = mapped_column(Text, default="")
     keywords: Mapped[list] = mapped_column(JSON, default=list)
     feeds: Mapped[list] = mapped_column(JSON, default=list)
@@ -97,6 +134,8 @@ class Episode(Base):
     duration: Mapped[int] = mapped_column(Integer, default=0)
     chapters: Mapped[list] = mapped_column(JSON, default=list)
     sources: Mapped[list] = mapped_column(JSON, default=list)
+    period_start: Mapped[str] = mapped_column(String(40), default="")  # behandelde nieuwsperiode
+    period_end: Mapped[str] = mapped_column(String(40), default="")
 
     show: Mapped[Show] = relationship(back_populates="episodes")
 
@@ -114,6 +153,8 @@ class Episode(Base):
             "duration": self.duration,
             "chapters": self.chapters or [],
             "sources": self.sources or [],
+            "period_start": self.period_start or "",
+            "period_end": self.period_end or "",
         }
 
 
@@ -148,7 +189,10 @@ class Job(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     show_id: Mapped[str] = mapped_column(ForeignKey("shows.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(32), default="queued")  # queued|running|succeeded|failed|skipped
-    trigger: Mapped[str] = mapped_column(String(32), default="manual")  # manual|schedule
+    trigger: Mapped[str] = mapped_column(String(32), default="schedule")  # initial|schedule
+    scheduled_for: Mapped[str | None] = mapped_column(String(10), nullable=True)  # lokale publicatiedatum (YYYY-MM-DD); voorkomt dubbele runs
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    run_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # pas daarna (opnieuw) proberen
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     log: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

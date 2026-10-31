@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date
 
+from .discover import candidates_for_topic, read_own_sources
 from .fetch import Item, fetch_topic
 from .llm import ask_json
 from .store import DEFAULT_STORE, ShowStore
@@ -16,6 +17,8 @@ class TopicPlan:
 
 def score_items(topic: dict, items: list[Item], model: str, focus: str) -> list[int | None]:
     listing = "\n".join(f"{i}. [{it.source}] {it.title} — {it.summary[:300]}" for i, it in enumerate(items))
+    focus_rule = (f"Regionale focus: {focus}. Een bericht zonder duidelijke link met {focus} (geen Nederlandse organisatie,\n"
+                  f"bedrijf, beleid, regio of gevolgen voor mensen in Nederland) krijgt maximaal 3.") if focus else ""
     prompt = f"""Interessegebied: {topic['name']}
 Wat de luisteraar hierin interessant vindt: {topic['description']}
 
@@ -25,8 +28,9 @@ Gebruik een absolute schaal, zodat scores tussen interessegebieden vergelijkbaar
 5-6 = interessant maar niet urgent; 3-4 = marginaal; 0-2 = irrelevant, clickbait of reclame.
 Wees streng: op een gewone dag zijn er weinig berichten met 8 of hoger. Gaan meerdere berichten over
 dezelfde gebeurtenis, geef dan alleen het beste bericht een hoge score.
-Regionale focus: {focus}. Een bericht zonder duidelijke link met {focus} (geen Nederlandse organisatie,
-bedrijf, beleid, regio of gevolgen voor mensen in Nederland) krijgt maximaal 3.
+Betrouwbaarheid telt mee: een bericht dat vooral onbevestigde claims, geruchten of reclame bevat, of dat afkomstig is van een
+onbetrouwbare bron, krijgt maximaal 4. Oorspronkelijke en redactioneel verantwoorde bronnen gaan voor.
+{focus_rule}
 
 {listing}
 
@@ -168,8 +172,13 @@ def plan_episode(cfg: dict, today: date, store: ShowStore | None = None) -> list
     rel, dur = cfg["relevance"], cfg["duration"]
     store = store or DEFAULT_STORE
     pool: list[tuple[Item, int]] = []
+    own = read_own_sources(cfg.get("sources", {}).get("feeds", []), cfg["period"]["from"]) \
+        if any(t.get("free_text") for t in cfg["topics"]) else []
     for topic in cfg["topics"]:
-        items = fetch_topic(topic, rel["lookback_hours"], rel["max_candidates_per_topic"])
+        if topic.get("free_text"):
+            items = candidates_for_topic(topic, cfg, own, rel["max_candidates_per_topic"])
+        else:
+            items = fetch_topic(topic, rel["lookback_hours"], rel["max_candidates_per_topic"])
         if not items:
             continue
         scores = score_items(topic, items, cfg["models"]["scoring"], rel["focus"])

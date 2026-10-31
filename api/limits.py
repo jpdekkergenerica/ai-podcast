@@ -1,79 +1,98 @@
+"""Validatie van podcast-instellingen. Fouten komen per veld terug, zodat de app ze bij het juiste veld kan tonen."""
+from __future__ import annotations
+
 import re
-from datetime import datetime, timezone
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 
-from .defaults import DEFAULT_SCHEDULE, MAX_FEEDS_PER_TOPIC, MAX_MANUAL_BUILDS_PER_DAY, MAX_MINUTES_CAP, MAX_TOPICS
-from .models import Job, Show
-
-
-def validate_topics(topics: list) -> None:
-    if len(topics) > MAX_TOPICS:
-        raise HTTPException(400, f"Maximaal {MAX_TOPICS} onderwerpen")
-    for t in topics:
-        name = t.name if hasattr(t, "name") else t.get("name", "")
-        feeds = t.feeds if hasattr(t, "feeds") else t.get("feeds", [])
-        feeds = [f for f in feeds if str(f).strip()]
-        if not name or not str(name).strip():
-            raise HTTPException(400, "Elk onderwerp heeft een naam nodig")
-        if not feeds:
-            raise HTTPException(400, f"Onderwerp '{name}' heeft minstens één feed nodig")
-        if len(feeds) > MAX_FEEDS_PER_TOPIC:
-            raise HTTPException(400, f"Maximaal {MAX_FEEDS_PER_TOPIC} feeds per onderwerp")
-        for f in feeds:
-            if urlparse(str(f).strip()).scheme not in ("http", "https"):
-                raise HTTPException(400, f"Feed '{f}' moet een http(s)-adres zijn")
+from .defaults import DEFAULT_SCHEDULE, DURATION_CHOICES, MAX_SOURCES, MAX_TOPIC_LENGTH, MAX_TOPICS, STYLES
+from .schedule import as_utc  # noqa: F401  (hergebruikt door de worker)
 
 
-def as_utc(moment: datetime) -> datetime:
-    """SQLite geeft naïeve datums terug (UTC); behandel die als UTC in plaats van lokale tijd."""
-    return moment.replace(tzinfo=timezone.utc) if moment.tzinfo is None else moment.astimezone(timezone.utc)
+class FieldErrors(HTTPException):
+    """400 met {"message": ..., "fields": {veld: melding}}."""
+
+    def __init__(self, fields: dict[str, str]):
+        super().__init__(400, detail={"message": next(iter(fields.values())), "fields": fields})
 
 
-def validate_schedule(schedule: dict) -> dict:
-    """Geeft de opgeschoonde planning terug. Max. één aflevering per dag (één tijdstip), dus de kosten blijven begrensd."""
-    out = {**DEFAULT_SCHEDULE, **{k: v for k, v in schedule.items() if k in DEFAULT_SCHEDULE}}
-    if not isinstance(out["enabled"], bool):
-        raise HTTPException(400, "enabled moet waar of onwaar zijn")
-    days = out["days"]
-    if (not isinstance(days, list) or any(not isinstance(d, int) or isinstance(d, bool) or not 0 <= d <= 6 for d in days)):
-        raise HTTPException(400, "days: kies dagen tussen 0 (maandag) en 6 (zondag)")
-    out["days"] = sorted(set(days))
-    if out["enabled"] and not out["days"]:
-        raise HTTPException(400, "Kies minstens één dag")
-    if not isinstance(out["time"], str) or not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", out["time"]):
-        raise HTTPException(400, "time moet HH:MM zijn")
-    try:
-        ZoneInfo(str(out["timezone"]))
-    except (ZoneInfoNotFoundError, ValueError) as e:
-        raise HTTPException(400, f"Onbekende tijdzone: {out['timezone']}") from e
+def clean_topics(topics: list[str], errors: dict[str, str]) -> list[str]:
+    cleaned = [re.sub(r"\s+", " ", t).strip() for t in topics]
+    cleaned = [t for t in cleaned if t]
+    if not cleaned:
+        errors["topics"] = "Voeg minstens één onderwerp toe"
+    elif len(cleaned) > MAX_TOPICS:
+        errors["topics"] = f"Maximaal {MAX_TOPICS} onderwerpen"
+    elif any(len(t) > MAX_TOPIC_LENGTH for t in cleaned):
+        errors["topics"] = f"Een onderwerp mag hooguit {MAX_TOPIC_LENGTH} tekens zijn"
+    else:
+        seen: set[str] = set()
+        cleaned = [t for t in cleaned if not (t.lower() in seen or seen.add(t.lower()))]
+    return cleaned
+
+
+def clean_sources(urls: list[str], errors: dict[str, str]) -> list[str]:
+    out: list[str] = []
+    for u in urls:
+        u = u.strip()
+        if not u:
+            continue
+        if urlparse(u).scheme not in ("http", "https") or not urlparse(u).hostname:
+            errors["sources"] = f"'{u}' is geen website- of RSS-adres (begin met https://)"
+            break
+        if u not in out:
+            out.append(u)
+    if len(out) > MAX_SOURCES:
+        errors["sources"] = f"Maximaal {MAX_SOURCES} eigen bronnen"
     return out
 
 
-def validate_duration(duration: dict) -> None:
-    """De duur bepaalt de kosten (Claude + ElevenLabs), dus begrenzen we hem ook via de instellingen."""
-    max_minutes = duration.get("max_minutes")
-    if max_minutes is not None and not 1 <= float(max_minutes) <= MAX_MINUTES_CAP:
-        raise HTTPException(400, f"max_minutes moet tussen 1 en {MAX_MINUTES_CAP} liggen")
+def validate_schedule(schedule: dict, errors: dict[str, str] | None = None) -> dict:
+    """Geeft de opgeschoonde planning terug. Hooguit één aflevering per dag (één tijdstip), dus de kosten blijven begrensd."""
+    errs: dict[str, str] = {}
+    out = {**DEFAULT_SCHEDULE, **{k: v for k, v in schedule.items() if k in DEFAULT_SCHEDULE}}
+    days = out["days"]
+    if not isinstance(out["enabled"], bool):
+        errs["schedule"] = "Planning aan/uit moet waar of onwaar zijn"
+    elif not isinstance(days, list) or any(not isinstance(d, int) or isinstance(d, bool) or not 0 <= d <= 6 for d in days):
+        errs["schedule"] = "Kies dagen tussen maandag en zondag"
+    else:
+        out["days"] = sorted(set(days))
+        every = out["every_days"]
+        if every is not None and (not isinstance(every, int) or isinstance(every, bool) or not 2 <= every <= 30):
+            errs["schedule"] = "Een eigen interval is 2 tot 30 dagen"
+        elif every is None and out["enabled"] and not out["days"]:
+            errs["schedule"] = "Kies minstens één dag"
+        elif not isinstance(out["time"], str) or not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", out["time"]):
+            errs["schedule"] = "Het tijdstip moet uur:minuut zijn, bijvoorbeeld 07:00"
+        else:
+            try:
+                ZoneInfo(str(out["timezone"]))
+            except (ZoneInfoNotFoundError, ValueError):
+                errs["schedule"] = f"Onbekende tijdzone: {out['timezone']}"
+    if errs:
+        if errors is None:
+            raise FieldErrors(errs)
+        errors.update(errs)
+    return out
 
 
-def assert_can_enqueue_manual(db: Session, show: Show) -> None:
-    today = datetime.now(timezone.utc).date()
-    jobs = db.query(Job).filter(Job.show_id == show.id, Job.trigger == "manual").all()
-    today_jobs = [
-        j for j in jobs
-        if j.created_at and as_utc(j.created_at).date() == today
-    ]
-    if len(today_jobs) >= MAX_MANUAL_BUILDS_PER_DAY:
-        raise HTTPException(429, f"Maximaal {MAX_MANUAL_BUILDS_PER_DAY} handmatige build(s) per dag")
-
-
-def clamp_max_minutes(value: float | None, show: Show) -> float | None:
-    if value is None:
-        return None
-    if value > MAX_MINUTES_CAP:
-        raise HTTPException(400, f"max_minutes mag hooguit {MAX_MINUTES_CAP} zijn")
-    return value
+def validate_common(*, title: str | None, duration_minutes: int | None, voice_id: str | None, style: str | None,
+                    required: bool, errors: dict[str, str]) -> None:
+    if title is not None or required:
+        t = (title or "").strip()
+        if not t:
+            errors["title"] = "Geef je podcast een naam"
+        elif len(t) > 100:
+            errors["title"] = "De naam mag hooguit 100 tekens zijn"
+    if duration_minutes is not None or required:
+        if duration_minutes not in DURATION_CHOICES:
+            errors["duration_minutes"] = "Kies 5, 10, 15 of 20 minuten"
+    if voice_id is not None or required:
+        if not (voice_id or "").strip():
+            errors["voice"] = "Kies een stem"
+    if style is not None or required:
+        if style not in STYLES:
+            errors["style"] = "Kies zakelijk, informeel of verhalend"

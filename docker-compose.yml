@@ -22,6 +22,7 @@ services:
       STORAGE_ROOT: /data/storage
       API_JWT_SECRET: dev-secret-change-me
       CORS_ORIGINS: "*"
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
     ports:
       - "8000:8000"
     volumes:
@@ -40,6 +41,11 @@ services:
       STORAGE_ROOT: /data/storage
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_AUTH_KEY: ${APNS_AUTH_KEY:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-nl.generica.personalpodcast}
+      APNS_USE_SANDBOX: ${APNS_USE_SANDBOX:-1}
     volumes:
       - storage:/data/storage
     depends_on:

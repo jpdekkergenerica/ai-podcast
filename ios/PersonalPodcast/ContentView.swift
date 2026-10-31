@@ -25,10 +25,12 @@ struct WebView: UIViewRepresentable {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.userContentController.add(context.coordinator, name: "appleSignIn")
+        config.userContentController.add(context.coordinator, name: "push")
         let view = WKWebView(frame: .zero, configuration: config)
         context.coordinator.webView = view
         view.scrollView.contentInsetAdjustmentBehavior = .never
         view.navigationDelegate = context.coordinator
+        view.uiDelegate = context.coordinator
         view.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData))
         return view
     }
@@ -38,11 +40,16 @@ struct WebView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     /// Brug tussen de webpagina en Sign in with Apple: JS stuurt "appleSignIn", het resultaat gaat terug via `__appleSignInResult`.
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler,
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler,
                              ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
         weak var webView: WKWebView?
 
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+            if message.name == "push" {
+                let action = (message.body as? [String: Any])?["action"] as? String ?? "status"
+                PushBridge.shared.handle(action: action) { payload in self.send(payload, to: "__pushResult") }
+                return
+            }
             guard message.name == "appleSignIn" else { return }
             let request = ASAuthorizationAppleIDProvider().createRequest()
             request.requestedScopes = [.email]
@@ -74,12 +81,21 @@ struct WebView: UIViewRepresentable {
             send(["error": cancelled ? "Inloggen geannuleerd" : "Inloggen met Apple mislukt: \(error.localizedDescription)"])
         }
 
-        private func send(_ payload: [String: Any]) {
+        private func send(_ payload: [String: Any], to callback: String = "__appleSignInResult") {
             guard let json = try? JSONSerialization.data(withJSONObject: payload),
                   let text = String(data: json, encoding: .utf8) else { return }
             DispatchQueue.main.async {
-                self.webView?.evaluateJavaScript("window.__appleSignInResult(\(text))")
+                self.webView?.evaluateJavaScript("window.\(callback)(\(text))")
             }
+        }
+
+        /// Links naar bronnen (window.open of een link naar een andere site) openen in Safari, niet in deze WebView.
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                     for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            if let url = navigationAction.request.url, ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+                UIApplication.shared.open(url)
+            }
+            return nil
         }
 
         func webView(_ webView: WKWebView,
@@ -88,6 +104,12 @@ struct WebView: UIViewRepresentable {
             if let url = navigationAction.request.url,
                let scheme = url.scheme?.lowercased(),
                scheme == "podcasts" || scheme == "itms-podcasts" {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url,
+               ["http", "https"].contains(url.scheme?.lowercased() ?? ""), url.host != webView.url?.host {
                 UIApplication.shared.open(url)
                 decisionHandler(.cancel)
                 return

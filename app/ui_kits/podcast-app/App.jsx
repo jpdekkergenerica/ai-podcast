@@ -3,141 +3,87 @@ import { PhoneFrame } from "./PhoneFrame.jsx";
 import { TabBar } from "../../components/navigation/TabBar.jsx";
 import { Toast } from "../../components/overlays/Toast.jsx";
 import { Start } from "./Start.jsx";
-import { Home } from "./Home.jsx";
-import { Topics } from "./Topics.jsx";
-import { Settings, Pronounce } from "./Settings.jsx";
+import { PodcastList } from "./PodcastList.jsx";
+import { PodcastForm } from "./PodcastForm.jsx";
+import { PodcastDetail } from "./PodcastDetail.jsx";
+import { EpisodeDetail } from "./EpisodeDetail.jsx";
 import { Account } from "./Account.jsx";
 import { api, getToken, setToken } from "./api.js";
 
 const TABS = [
-  { value: "home", label: "Home", icon: "dashboard" },
-  { value: "topics", label: "Onderwerpen", icon: "flag" },
-  { value: "settings", label: "Aflevering", icon: "sliders" },
+  { value: "podcasts", label: "Podcasts", icon: "dashboard" },
   { value: "account", label: "Account", icon: "user" },
 ];
 
-/** Config-app voor persoonlijke podcasts — Monsey UI kit, Nederlands, geen speler. */
+/** yourownpod — Guardia-stijl, Nederlands. Mijn podcasts is het startpunt; detail- en formulierschermen liggen als stapel erboven. */
 export function App({ theme: theme0 = "light", framed = true }) {
   const [theme, setTheme] = useState(theme0);
-  const [show, setShow] = useState(null);
+  const [authed, setAuthed] = useState(false);
   const [booting, setBooting] = useState(true);
-  const [authed, setAuthed] = useState(false); // ingelogd, maar nog geen show
-  const [tab, setTab] = useState("home");
-  const [stack, setStack] = useState(null); // "pronounce" | null
+  const [tab, setTab] = useState("podcasts");
+  const [stack, setStack] = useState([]);
   const [toast, setToast] = useState(null);
-  const [building, setBuilding] = useState(false);
+  const [listKey, setListKey] = useState(0); // ververst Mijn podcasts na een wijziging
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast) return undefined;
     const id = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(id);
   }, [toast]);
 
   useEffect(() => {
     (async () => {
-      if (!getToken()) { setBooting(false); return; }
-      try {
-        const s = await api.getShow();
-        setShow(s);
-      } catch (e) {
-        if (e.status === 404) setAuthed(true);
-        else setToken("");
-      } finally {
-        setBooting(false);
+      if (getToken()) {
+        try { await api.me(); setAuthed(true); } catch (e) { if (e.status === 401) setToken(""); else setAuthed(true); }
       }
+      setBooting(false);
     })();
   }, []);
 
-  const refresh = async () => {
-    const s = await api.getShow();
-    setShow(s);
-    return s;
+  const showToast = (message, icon, variant) => setToast({ message, icon, variant });
+  const nav = {
+    push: (screen) => setStack((s) => [...s, screen]),
+    pop: () => setStack((s) => s.slice(0, -1)),
+    toast: showToast,
+    // klaar met een scherm: terug naar het overzicht met een melding
+    done: (saved, message) => {
+      setStack(saved && saved.id ? [{ name: "detail", id: saved.id }] : []);
+      setTab("podcasts");
+      setListKey((k) => k + 1);
+      if (message) showToast(message, "alert", "error");
+    },
   };
 
-  const copyFeed = async () => {
-    try {
-      await navigator.clipboard.writeText(show.feed_url);
-      setToast({ message: "Feed-URL gekopieerd", icon: "check" });
-    } catch {
-      setToast({ message: show.feed_url, variant: "default" });
-    }
-  };
+  const logout = () => { setToken(""); setAuthed(false); setStack([]); setTab("podcasts"); };
 
-  const openPodcasts = () => {
-    // iOS: podcasts://; anders instructie
-    window.location.href = "podcasts://";
-    setToast({ message: "Plak de feed-URL in Podcasts → Volg via URL" });
-  };
-
-  const build = async () => {
-    setBuilding(true);
-    try {
-      const res = await api.build();
-      setToast({ message: res.message || "Build gestart", icon: "check" });
-      await refresh();
-    } catch (e) {
-      setToast({ message: e.message, variant: "error", icon: "alert" });
-    } finally {
-      setBuilding(false);
-    }
-  };
-
-  const saveShow = async (patch) => {
-    const s = await api.updateShow(patch);
-    setShow(s);
-    return s;
-  };
-
-  const saveTopics = async (topics) => {
-    const s = await api.updateShow({ topics });
-    setShow(s);
-    return s;
-  };
-
+  const top = stack[stack.length - 1];
   let screen;
   if (booting) {
     screen = <div style={{ flex: 1, display: "grid", placeItems: "center", font: "var(--type-body-small)", color: "var(--text-secondary)" }}>Laden…</div>;
-  } else if (!show) {
-    screen = <Start authed={authed} onReady={(s) => { setShow(s); setTab("home"); }} />;
-  } else if (stack === "pronounce") {
-    screen = <Pronounce show={show} onBack={() => setStack(null)} onSave={saveShow} />;
-  } else if (tab === "home") {
-    screen = (
-      <Home show={show} building={building}
-        onCopyFeed={copyFeed} onOpenPodcasts={openPodcasts} onBuild={build}
-        onTopics={() => setTab("topics")} onSettings={() => setTab("settings")} />
-    );
-  } else if (tab === "topics") {
-    screen = (
-      <Topics show={show} onBack={() => setTab("home")}
-        onSave={saveTopics} onTest={(t) => api.feedTest(t)} />
-    );
-  } else if (tab === "settings") {
-    screen = (
-      <Settings show={show} onBack={() => setTab("home")} onSave={saveShow}
-        onPronounce={() => setStack("pronounce")} />
-    );
+  } else if (!authed) {
+    screen = <Start onReady={() => setAuthed(true)} />;
+  } else if (top?.name === "form") {
+    screen = <PodcastForm key={top.id || "new"} id={top.id} nav={nav} />;
+  } else if (top?.name === "detail") {
+    screen = <PodcastDetail key={top.id} id={top.id} nav={nav} />;
+  } else if (top?.name === "episode") {
+    screen = <EpisodeDetail key={top.guid} id={top.id} guid={top.guid} nav={nav} />;
+  } else if (tab === "account") {
+    screen = <Account theme={theme} setTheme={setTheme} onLogout={logout} onDeleted={logout} toast={showToast} />;
   } else {
-    screen = (
-      <Account show={show} theme={theme} setTheme={setTheme} onBack={() => setTab("home")}
-        onRotate={async () => { await api.rotateToken(); await refresh(); setToast({ message: "Nieuw feed-token", icon: "check" }); }}
-        onLogout={() => { setToken(""); setShow(null); setAuthed(false); }}
-        onDelete={async () => { await api.deleteAccount(); setToken(""); setShow(null); setAuthed(false); }} />
-    );
+    screen = <PodcastList key={listKey} nav={nav} />;
   }
 
+  const showTabs = authed && !booting && stack.length === 0;
   const body = (
     <>
       {screen}
       {toast && (
-        <div style={{ position: "absolute", left: 16, right: 16, bottom: show && !stack && tab ? 80 : 24, zIndex: 40 }}>
+        <div style={{ position: "absolute", left: 16, right: 16, bottom: showTabs ? 80 : 24, zIndex: 40 }}>
           <Toast message={toast.message} icon={toast.icon} variant={toast.variant || "default"} />
         </div>
       )}
-      {show && !stack && !booting && (
-        <TabBar tabs={TABS} value={tab} onChange={setTab}
-          onCenter={build} centerLabel="Bouw" centerPressed={building} />
-      )}
+      {showTabs && <TabBar tabs={TABS} value={tab} onChange={setTab} />}
     </>
   );
 

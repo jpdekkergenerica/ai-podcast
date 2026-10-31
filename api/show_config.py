@@ -40,36 +40,56 @@ def merged_schedule(raw: dict | None) -> dict:
     return {**DEFAULT_SCHEDULE, **(raw or {})}
 
 
-def show_to_cfg(show: Show) -> dict:
+def cover_path_for(show: Show):
+    from .storage import show_dir
+    return (show_dir(show.id) / show.cover_file) if show.cover_file else None
+
+
+def show_to_cfg(show: Show, since: float | None = None) -> dict:
+    """Configuratie voor de pijplijn. `since` (unix-tijd) is de grens van de nieuwsperiode: de vorige gepubliceerde
+    aflevering, of bij de eerste aflevering één planningsinterval terug."""
+    import time
+    from .schedule import merged
+    sched = merged(show.schedule)
+    duration = {**DEFAULT_DURATION, **(show.duration or {})}
+    duration["max_minutes"] = min(float(duration["max_minutes"]), MAX_MINUTES_CAP)
+    relevance = {**DEFAULT_RELEVANCE, **(show.relevance or {})}
+    now = time.time()
+    if since is None:
+        interval_days = sched["every_days"] or (1 if len(sched["days"]) >= 5 else 7 if len(sched["days"]) == 1 else 3)
+        since = now - interval_days * 86400
+    relevance["lookback_hours"] = max(6, min(24 * 30, round((now - since) / 3600) + 1))
+    own = [s for s in show.sources if not s.error or s.kind == "website"]
+    cover = cover_path_for(show)
     return {
         "podcast": {
             "title": show.title,
-            "description": show.description.strip() or show.title,
+            "description": show.description.strip() or f"Een persoonlijke nieuwspodcast: {', '.join(t.name for t in show.topics)[:200]}",
             "author": show.author,
             "email": show.email or "noreply@example.com",
-            "language": show.language,
+            "language": "nl",  # alleen Nederlands in de eerste versie
             "keep_episodes": show.keep_episodes,
             "call_to_action": show.call_to_action or DEFAULT_CALL_TO_ACTION,
             "site_url": site_url_for(show),
             "feed_url": feed_url_for(show),
             "feed_token": show.feed_token,
+            "cover_path": str(cover) if cover else None,
+            "brand": "yourownpod",
         },
-        "duration": {
-            **DEFAULT_DURATION,
-            **(show.duration or {}),
-            "max_minutes": min(float((show.duration or {}).get("max_minutes", DEFAULT_DURATION["max_minutes"])), MAX_MINUTES_CAP),
-        },
-        "relevance": {**DEFAULT_RELEVANCE, **(show.relevance or {})},
+        "duration": duration,
+        "relevance": relevance,
         "models": {**DEFAULT_MODELS, **(show.models or {})},
         "voice": {**DEFAULT_VOICE, **(show.voice or {})},
+        "style": show.style,
+        "period": {"from": since, "to": now},
+        "fill_background": True,  # bij weinig nieuws: herkenbare achtergrond en uitleg erbij
         "pronunciation": dict(show.pronunciation or {}),
+        "sources": {
+            "feeds": [s.feed_url or s.url for s in own if s.kind == "rss" or s.feed_url],
+            "domains": [s.url for s in own if s.kind == "website" and not s.feed_url],
+        },
         "topics": [
-            {
-                "name": t.name,
-                "description": t.description,
-                "keywords": list(t.keywords or []),
-                "feeds": list(t.feeds or []),
-            }
+            {"name": t.name, "description": t.name, "keywords": [], "feeds": [], "free_text": True}
             for t in sorted(show.topics, key=lambda x: x.sort_order)
         ],
     }
@@ -99,7 +119,7 @@ class DbShowStore:
         )
         if existing:
             for key in ("date", "published", "title", "summary", "blurb", "tag", "file",
-                        "size", "duration", "chapters", "sources"):
+                        "size", "duration", "chapters", "sources", "period_start", "period_end"):
                 setattr(existing, key, ep.get(key) if key != "size" else ep.get("size", 0))
         else:
             self.db.add(Episode(
@@ -116,6 +136,8 @@ class DbShowStore:
                 duration=ep.get("duration", 0),
                 chapters=ep.get("chapters") or [],
                 sources=ep.get("sources") or [],
+                period_start=ep.get("period_start", ""),
+                period_end=ep.get("period_end", ""),
             ))
         self.db.commit()
 

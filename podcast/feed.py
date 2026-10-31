@@ -35,7 +35,8 @@ def _hms(seconds: int) -> str:
     return f"{seconds // 3600}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
 
 
-FONTS = ["/System/Library/Fonts/Helvetica.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
+FONTS = [str(Path(__file__).resolve().parent.parent / "assets" / "fonts" / "Geist-Medium.ttf"),
+         "/System/Library/Fonts/Helvetica.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
 
 
 def _font(size: int) -> ImageFont.FreeTypeFont:
@@ -47,20 +48,23 @@ def _font(size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default(size=size)
 
 
-def make_cover(title: str, dest: Path) -> None:
-    """3000x3000 JPEG, hoog contrast, één beeldmerk en grote titel binnen de veilige marge (leesbaar op 100x100)."""
+def make_cover(title: str, dest: Path, brand: str | None = None) -> None:
+    """3000x3000 JPEG, hoog contrast, één beeldmerk en grote titel binnen de veilige marge (leesbaar op 100x100).
+
+    brand="yourownpod" geeft de standaardomslag van de app (paars, met de naam van de podcast)."""
     custom = Path("assets/cover.jpg")
-    if custom.exists():
+    if custom.exists() and brand is None:
         dest.write_bytes(custom.read_bytes())
         return
     size, margin = 3000, 450
-    img = Image.new("RGB", (size, size), "#12161f")
+    bg, disc, bars, ink = ("#4d0f5f", "#9748ad", "#4d0f5f", "#ffffff") if brand == "yourownpod" else ("#12161f", "#ff7a3d", "#12161f", "#ffc94d")
+    img = Image.new("RGB", (size, size), bg)
     draw = ImageDraw.Draw(img)
     cx, cy, r = size // 2, 1000, 600
-    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill="#ff7a3d")
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=disc)
     for i, h in enumerate([220, 440, 760, 960, 620, 840, 360, 200]):
         x = cx - 4 * 100 + i * 100 + 15
-        draw.rounded_rectangle((x, cy - h // 2, x + 60, cy + h // 2), radius=30, fill="#12161f")
+        draw.rounded_rectangle((x, cy - h // 2, x + 60, cy + h // 2), radius=30, fill=bars)
 
     fs = 400
     while True:
@@ -77,7 +81,7 @@ def make_cover(title: str, dest: Path) -> None:
         fs -= 20
     y = 1850
     for line in lines:
-        draw.text(((size - draw.textlength(line, font=font)) / 2, y), line, fill="#ffc94d", font=font)
+        draw.text(((size - draw.textlength(line, font=font)) / 2, y), line, fill=ink, font=font)
         y += int(fs * 1.15)
     img.save(dest, "JPEG", quality=85)
 
@@ -93,7 +97,11 @@ def write_site(cfg: dict, site_dir: Path, store: ShowStore | None = None,
     token = p.get("feed_token") or ""
     q = f"?token={token}" if token else ""
     site_dir.mkdir(parents=True, exist_ok=True)
-    make_cover(p["title"], site_dir / "cover.jpg")
+    own_cover = p.get("cover_path")
+    if own_cover and Path(own_cover).is_file():
+        (site_dir / "cover.jpg").write_bytes(Path(own_cover).read_bytes())  # eigen omslag van de gebruiker
+    else:
+        make_cover(p["title"], site_dir / "cover.jpg", brand=p.get("brand"))
     # Apple onthoudt artwork per URL: een versie in de bestandsnaam zorgt dat een nieuwe cover wordt opgehaald
     digest = hashlib.sha1((site_dir / "cover.jpg").read_bytes()).hexdigest()[:8]
     cover = f"cover-{digest}.jpg"

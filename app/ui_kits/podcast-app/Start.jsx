@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../components/core/Button.jsx";
-import { TextField } from "../../components/forms/TextField.jsx";
 import { BrandMark } from "../../components/navigation/BrandHeader.jsx";
-import { PageDots } from "../../components/core/PageDots.jsx";
 import { api, setToken, hasNativeApple, nativeAppleSignIn } from "./api.js";
 
-/** Start: Sign in with Apple (zolang er geen login is) → show-naam. Monsey: Geist Pixel alleen voor display ≥24px. */
-export function Start({ onReady, authed = false }) {
-  const [step, setStep] = useState(authed ? 1 : 0);
-  const [title, setTitle] = useState("");
+/** Scherm 1 · Aanmelden: korte uitleg en Log in met Apple. Annuleren laat je hier; een fout krijgt een begrijpelijke melding. */
+export function Start({ onReady }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [devAuth, setDevAuth] = useState(false);
@@ -17,20 +13,17 @@ export function Start({ onReady, authed = false }) {
     api.health().then((h) => setDevAuth(!!h.dev_auth)).catch(() => {});
   }, []);
 
-  const finishLogin = async (res) => {
-    setToken(res.access_token);
-    if (res.has_show) onReady(await api.getShow());
-    else setStep(1);
-  };
+  const finish = (res) => { setToken(res.access_token); onReady(); };
 
   const appleLogin = async () => {
     setBusy(true); setError("");
     try {
-      if (!hasNativeApple()) throw new Error("Sign in with Apple werkt alleen in de app.");
+      if (!hasNativeApple()) throw new Error("Inloggen met Apple werkt alleen in de app.");
       const { identityToken, email } = await nativeAppleSignIn();
-      await finishLogin(await api.appleLogin(identityToken, email));
+      finish(await api.appleLogin(identityToken, email));
     } catch (e) {
-      setError(e.message || "Inloggen mislukt");
+      // annuleren is geen fout: je blijft gewoon op dit scherm
+      if (!/geannuleerd/i.test(e.message || "")) setError(e.message || "Inloggen mislukt. Probeer het opnieuw.");
     } finally {
       setBusy(false);
     }
@@ -38,30 +31,7 @@ export function Start({ onReady, authed = false }) {
 
   const devLogin = async () => {
     setBusy(true); setError("");
-    try {
-      await finishLogin(await api.devLogin());
-    } catch (e) {
-      setError(e.message || "Inloggen mislukt. Draait de API?");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const create = async () => {
-    if (!title.trim()) { setError("Geef je podcast een naam"); return; }
-    setBusy(true); setError("");
-    try {
-      const show = await api.createShow({
-        title: title.trim(),
-        description: "Een persoonlijke nieuwspodcast over jouw onderwerpen.",
-        topics: [],
-      });
-      onReady(show);
-    } catch (e) {
-      setError(e.message || "Aanmaken mislukt");
-    } finally {
-      setBusy(false);
-    }
+    try { finish(await api.devLogin()); } catch (e) { setError(e.message || "Inloggen mislukt. Draait de API?"); } finally { setBusy(false); }
   };
 
   return (
@@ -70,38 +40,18 @@ export function Start({ onReady, authed = false }) {
         <BrandMark size={40} />yourownpod
       </span>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
-        {step === 0 && (
-          <>
-            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)", textWrap: "balance" }}>Jouw onderwerpen, jouw podcast</h1>
-            <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>
-              Jij kiest de onderwerpen. Wij maken er een podcast van. Luisteren doe je in Apple Podcasts.
-            </p>
-          </>
-        )}
-        {step === 1 && (
-          <>
-            <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)" }}>Geef je podcast een naam</h1>
-            <p style={{ margin: "0 0 16px", font: "var(--type-body)", color: "var(--text-secondary)" }}>
-              Je kunt dit later altijd aanpassen.
-            </p>
-            <TextField label="Podcastnaam" value={title} onChange={setTitle} placeholder="Mijn podcast"
-              error={error && !title.trim() ? error : ""} />
-          </>
-        )}
-        {error && !(step === 1 && !title.trim()) && (
-          <p style={{ margin: "8px 0 0", font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</p>
-        )}
+        <h1 style={{ margin: 0, font: "var(--type-display-l)", letterSpacing: "var(--ls-display-l)", textWrap: "balance" }}>Jouw onderwerpen, jouw podcast</h1>
+        <p style={{ margin: 0, font: "var(--type-body)", color: "var(--text-secondary)", textWrap: "pretty" }}>
+          Kies waar je nieuws over wilt horen. Wij maken en publiceren de afleveringen in je eigen feed. Luisteren doe je in Apple Podcasts.
+        </p>
+        {error && <p role="alert" style={{ margin: "8px 0 0", font: "var(--type-body-small)", color: "var(--negative-text)" }}>{error}</p>}
       </div>
-      <PageDots count={2} index={step} />
-      {step === 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Button fullWidth variant="secondary" size="lg" loading={busy} onClick={appleLogin}>
-            <span style={{ fontFamily: "-apple-system, system-ui", fontSize: 20, marginRight: 2, color: "var(--text-primary)" }} aria-hidden>{"\uF8FF"}</span> Doorgaan met Apple
-          </Button>
-          {devAuth && <Button fullWidth variant="tertiary" disabled={busy} onClick={devLogin}>Ontwikkel-login</Button>}
-        </div>
-      )}
-      {step === 1 && <Button fullWidth size="lg" loading={busy} onClick={create}>Podcast maken</Button>}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Button fullWidth variant="secondary" size="lg" loading={busy} onClick={appleLogin}>
+          <span style={{ fontFamily: "-apple-system, system-ui", fontSize: 20, marginRight: 2, color: "var(--text-primary)" }} aria-hidden>{"\uF8FF"}</span> Doorgaan met Apple
+        </Button>
+        {devAuth && <Button fullWidth variant="tertiary" disabled={busy} onClick={devLogin}>Ontwikkel-login</Button>}
+      </div>
     </div>
   );
 }

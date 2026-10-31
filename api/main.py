@@ -1,4 +1,4 @@
-"""FastAPI-app: auth, show-CRUD, privé-feed, media, jobs.
+"""FastAPI-app: auth, account, privé-feed en media. De podcasts zelf staan in routes.py.
 
 Start lokaal:
   export AUTH_DEV_MODE=1
@@ -16,33 +16,13 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session, joinedload
-
-from podcast.feed_test import test_feeds as probe_feeds
+from sqlalchemy.orm import Session
 
 from .auth import AUTH_DEV_MODE, current_user, issue_access_token, verify_apple_identity_token
 from .db import get_db, init_db
-from .defaults import (
-    DEFAULT_CALL_TO_ACTION,
-    DEFAULT_DURATION,
-    DEFAULT_MODELS,
-    DEFAULT_RELEVANCE,
-    DEFAULT_VOICE,
-)
-from .limits import assert_can_enqueue_manual, clamp_max_minutes, validate_duration, validate_schedule, validate_topics
-from .models import Job, Show, Topic, User, new_feed_token
-from .schemas import (
-    AppleLoginRequest,
-    BuildRequest,
-    DevLoginRequest,
-    FeedTestRequest,
-    MessageOut,
-    ShowCreate,
-    ShowOut,
-    ShowUpdate,
-    TokenResponse,
-)
-from .serializers import job_out, show_out
+from .models import Show, User
+from .routes import router
+from .schemas import AppleLoginRequest, DevLoginRequest, MessageOut, TokenResponse
 from .storage import audio_path, site_dir, show_dir
 
 app = FastAPI(title="yourownpod API", version="0.1.0")
@@ -61,35 +41,8 @@ def _startup() -> None:
     Path("data").mkdir(exist_ok=True)
 
 
-def _user_show(db: Session, user: User) -> Show | None:
-    return (
-        db.query(Show)
-        .options(joinedload(Show.topics), joinedload(Show.episodes), joinedload(Show.jobs))
-        .filter(Show.user_id == user.id)
-        .order_by(Show.created_at.asc())
-        .first()
-    )
-
-
-def _require_show(db: Session, user: User) -> Show:
-    show = _user_show(db, user)
-    if show is None:
-        raise HTTPException(404, "Nog geen show — maak er eerst een aan")
-    return show
-
-
-def _replace_topics(db: Session, show: Show, topics_in: list) -> None:
-    validate_topics(topics_in)
-    show.topics.clear()
-    db.flush()
-    for i, t in enumerate(topics_in):
-        show.topics.append(Topic(
-            name=t.name.strip(),
-            description=(t.description or "").strip(),
-            keywords=[k.strip() for k in t.keywords if k.strip()],
-            feeds=[f.strip() for f in t.feeds if f.strip()],
-            sort_order=t.sort_order if t.sort_order else i,
-        ))
+def _podcast_count(db: Session, user: User) -> int:
+    return db.query(Show).filter(Show.user_id == user.id).count()
 
 
 def _show_by_token(db: Session, show_id: str, token: str) -> Show:
@@ -120,7 +73,8 @@ def auth_apple(body: AppleLoginRequest, db: Session = Depends(get_db)) -> TokenR
     return TokenResponse(
         access_token=issue_access_token(user),
         user_id=user.id,
-        has_show=_user_show(db, user) is not None,
+        has_show=_podcast_count(db, user) > 0,
+        podcast_count=_podcast_count(db, user),
     )
 
 
@@ -137,133 +91,69 @@ def auth_dev(body: DevLoginRequest, db: Session = Depends(get_db)) -> TokenRespo
     return TokenResponse(
         access_token=issue_access_token(user),
         user_id=user.id,
-        has_show=_user_show(db, user) is not None,
+        has_show=_podcast_count(db, user) > 0,
+        podcast_count=_podcast_count(db, user),
     )
 
 
 # ---------- show ----------
 
-@app.get("/me/show", response_model=ShowOut)
-def get_show(user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> ShowOut:
-    return show_out(_require_show(db, user))
+# ---------- auth ----------
 
-
-@app.post("/me/show", response_model=ShowOut)
-def create_show(
-    body: ShowCreate,
-    user: Annotated[User, Depends(current_user)],
-    db: Session = Depends(get_db),
-) -> ShowOut:
-    if _user_show(db, user) is not None:
-        raise HTTPException(409, "Je hebt al een show (v1: één per account)")
-    if body.topics:
-        validate_topics(body.topics)
-    show = Show(
+@app.post("/auth/apple", response_model=TokenResponse)
+def auth_apple(body: AppleLoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    claims = verify_apple_identity_token(body.identity_token)
+    sub = claims.get("sub")
+    if not sub:
+        raise HTTPException(400, "Apple-token mist sub")
+    email = body.email or claims.get("email")
+    user = db.query(User).filter(User.apple_sub == sub).one_or_none()
+    if user is None:
+        user = User(apple_sub=sub, email=email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    elif email and not user.email:
+        user.email = email
+        db.commit()
+    return TokenResponse(
+        access_token=issue_access_token(user),
         user_id=user.id,
-        title=body.title.strip(),
-        description=body.description.strip(),
-        author=body.author.strip() or "yourownpod",
-        email=body.email.strip(),
-        language=body.language or "nl",
-        call_to_action=body.call_to_action or DEFAULT_CALL_TO_ACTION,
-        duration=dict(DEFAULT_DURATION),
-        relevance=dict(DEFAULT_RELEVANCE),
-        models=dict(DEFAULT_MODELS),
-        voice=dict(DEFAULT_VOICE),
-        pronunciation={},
+        has_show=_podcast_count(db, user) > 0,
+        podcast_count=_podcast_count(db, user),
     )
-    db.add(show)
-    db.flush()
-    if body.topics:
-        _replace_topics(db, show, body.topics)
-    db.commit()
-    show = _require_show(db, user)
-    return show_out(show)
 
 
-@app.patch("/me/show", response_model=ShowOut)
-def update_show(
-    body: ShowUpdate,
-    user: Annotated[User, Depends(current_user)],
-    db: Session = Depends(get_db),
-) -> ShowOut:
-    show = _require_show(db, user)
-    data = body.model_dump(exclude_unset=True)
-    topics = data.pop("topics", None)
-    if data.get("duration") is not None:
-        validate_duration(data["duration"])
-    if data.get("schedule") is not None:
-        data["schedule"] = validate_schedule(data["schedule"])
-    for key, value in data.items():
-        setattr(show, key, value)
-    if topics is not None:
-        _replace_topics(db, show, body.topics or [])
-    db.commit()
-    return show_out(_require_show(db, user))
+@app.post("/auth/dev", response_model=TokenResponse)
+def auth_dev(body: DevLoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    if not AUTH_DEV_MODE:
+        raise HTTPException(403, "Dev-login staat uit")
+    user = db.query(User).filter(User.apple_sub == body.apple_sub).one_or_none()
+    if user is None:
+        user = User(apple_sub=body.apple_sub, email=body.email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return TokenResponse(
+        access_token=issue_access_token(user),
+        user_id=user.id,
+        has_show=_podcast_count(db, user) > 0,
+        podcast_count=_podcast_count(db, user),
+    )
 
 
-@app.post("/me/show/rotate-feed-token", response_model=ShowOut)
-def rotate_token(user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> ShowOut:
-    show = _require_show(db, user)
-    show.feed_token = new_feed_token()
-    db.commit()
-    return show_out(_require_show(db, user))
-
+# ---------- account ----------
 
 @app.delete("/me/account", response_model=MessageOut)
 def delete_account(user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> MessageOut:
-    show = _user_show(db, user)
-    if show is not None:
+    for show in db.query(Show).filter(Show.user_id == user.id).all():
         shutil.rmtree(show_dir(show.id), ignore_errors=True)
     db.delete(user)
     db.commit()
     return MessageOut(message="Account verwijderd")
 
 
-# ---------- feeds test / jobs ----------
-
-@app.post("/me/feed-test")
-def feed_test(
-    body: FeedTestRequest,
-    user: Annotated[User, Depends(current_user)],
-) -> list[dict]:
-    _ = user
-    validate_topics([{"name": body.name or "test", "feeds": body.feeds}])
-    return probe_feeds(
-        {"name": body.name, "keywords": body.keywords, "feeds": body.feeds},
-        body.lookback_hours,
-    )
-
-
-@app.post("/me/build", response_model=MessageOut)
-def enqueue_build(
-    body: BuildRequest,
-    user: Annotated[User, Depends(current_user)],
-    db: Session = Depends(get_db),
-) -> MessageOut:
-    show = _require_show(db, user)
-    assert_can_enqueue_manual(db, show)
-    clamp_max_minutes(body.max_minutes, show)
-    if body.max_minutes is not None:
-        duration = dict(show.duration or DEFAULT_DURATION)
-        duration["max_minutes"] = float(body.max_minutes)
-        show.duration = duration
-    job = Job(show_id=show.id, status="queued", trigger="manual")
-    db.add(job)
-    db.commit()
-    # synchrone verwerking in DEV; anders wacht de worker-poll
-    if os.environ.get("WORKER_INLINE", "0") == "1":
-        from worker.run import process_job
-        process_job(job.id)
-        return MessageOut(message="Build gestart en verwerkt")
-    return MessageOut(message="Build in de wachtrij")
-
-
-@app.get("/me/jobs")
-def list_jobs(user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)):
-    show = _require_show(db, user)
-    jobs = db.query(Job).filter(Job.show_id == show.id).order_by(Job.created_at.desc()).limit(20).all()
-    return [job_out(j) for j in jobs]
+app.include_router(router)
 
 
 # ---------- private feed + media ----------
@@ -286,6 +176,9 @@ def private_media(show_id: str, filename: str, token: str = Query(...), db: Sess
     if "/" in filename or ".." in filename:
         raise HTTPException(400, "Ongeldige bestandsnaam")
     _show_by_token(db, show_id, token)
+    if filename == "cover.jpg" and not (site_dir(show_id) / "cover.jpg").exists():
+        from worker.run import refresh_feed  # omslag ontbreekt nog (nooit een feed geschreven): nu maken
+        refresh_feed(show_id)
     path = audio_path(show_id, filename)
     if not path.exists():
         # chapters/transcripts onder site/

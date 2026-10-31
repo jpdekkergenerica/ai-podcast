@@ -1,5 +1,6 @@
 import re
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 import trafilatura
 
@@ -10,7 +11,7 @@ DAYS = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "z
 MONTHS = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus",
           "september", "oktober", "november", "december"]
 
-SYSTEM = """Je bent de presentator van een dagelijkse Nederlandstalige solo-podcast, geschreven voor een tekst-naar-spraakstem. Het script moet klinken als iemand die vertelt, niet als iemand die een nieuwsbericht voorleest.
+SYSTEM = """Je bent de presentator van een Nederlandstalige solo-podcast, geschreven voor een tekst-naar-spraakstem. Het script moet klinken als iemand die vertelt, niet als iemand die een nieuwsbericht voorleest.
 Stijl:
 - Spreek de luisteraar consequent aan met "je" of "jij", alsof je tegen één persoon praat die je kent. Nooit "jullie", "beste luisteraars" of "wij".
 - Gesproken taal: wissel korte, krachtige zinnen af met langere, genuanceerde. Stel af en toe een vraag. Geen kale opsomming van berichten; verbind ze tot een verhaal.
@@ -22,6 +23,15 @@ Inhoud:
 - Noem bedrijven en organisaties bij de eerste vermelding met hun volledige naam (bijvoorbeeld "ASM International", niet alleen "ASMI") en neem namen exact over uit het materiaal. Verwar nooit partijen met een vergelijkbare naam of afkorting; maak het onderscheid zo nodig expliciet ("ASM International, een ander bedrijf dan ASML"). Twijfel je over wie er bedoeld wordt, zeg dan wat de bron letterlijk meldt.
 - Noem de bron kort in de zin ("meldt de NOS"), nooit een URL.
 - Houd je aan de woordbudgetten (maximaal 10% afwijking). Gebruik natuurlijke overgangen tussen onderwerpen."""
+
+
+STYLES = {
+    "zakelijk": "Vertelstijl: zakelijk. Helder, feitelijk en beknopt; neutrale toon, geen uitroepen of kwinkslagen, nuchtere duiding. Je blijft wel \"je\" zeggen.",
+    "informeel": "Vertelstijl: informeel. Warm en rechtstreeks, alsof je een vriend bijpraat; af en toe luchtig of een korte persoonlijke noot, maar de feiten blijven leidend.",
+    "verhalend": "Vertelstijl: verhalend. Vertel het nieuws als een verhaal met een lijn: een beeldende opening per onderwerp, spanning en tegenstellingen, overgangen die de luisteraar meenemen. Verzin geen scènes of details die niet in het materiaal staan.",
+}
+
+BACKGROUND_RULE = """Is er te weinig nieuws voor het woordbudget, vul dan aan met relevante achtergrond en uitleg bij dat nieuws (context, hoe iets werkt, wat eraan voorafging). Maak die achtergrond herkenbaar als uitleg ("even terug in de tijd", "om dit te begrijpen helpt het om te weten dat …") en presenteer haar nooit als nieuws. Voeg nooit verzonnen nieuws of gebeurtenissen toe om tijd te vullen."""
 
 
 def dutch_date(d: date) -> str:
@@ -47,8 +57,18 @@ def write_script(plans: list[TopicPlan], cfg: dict, today: date) -> tuple[str, s
         blocks.append("\n".join(lines))
     material = "\n\n".join(blocks)
     cta = cfg["podcast"]["call_to_action"]
+    system = SYSTEM
+    if cfg.get("style") in STYLES:
+        system += "\n" + STYLES[cfg["style"]]
+    if cfg.get("fill_background"):
+        system += "\n" + BACKGROUND_RULE
+    period = ""
+    if cfg.get("period"):
+        start = datetime.fromtimestamp(cfg["period"]["from"], tz=ZoneInfo("Europe/Amsterdam")).date()
+        period = (f"\nHet materiaal beslaat het nieuws van {dutch_date(start)} tot en met {dutch_date(today)}. "
+                  "Zeg niet 'vandaag' tenzij iets echt vandaag gebeurde; benoem anders de dag of 'sinds de vorige aflevering'.\n")
 
-    prompt = f"""Schrijf de podcastaflevering van {dutch_date(today)} van de podcast "{cfg['podcast']['title']}".
+    prompt = f"""Schrijf de podcastaflevering van {dutch_date(today)} van de podcast "{cfg['podcast']['title']}".{period}
 
 Opbouw, in deze volgorde:
 1. OPENING (ca. 110-130 woorden): begin direct met de haak. Binnen ongeveer 45 seconden weet de luisteraar wat de centrale vraag of het grootste verhaal van vandaag is, waarom dat nú relevant is en wat het luisteren oplevert. Geen opwarmpraatje en niet beginnen met "welkom bij". Pas daarna één korte zin als showintro (de podcastnaam en de datum).
@@ -67,7 +87,7 @@ MATERIAAL:
 
 {material}"""
     model = cfg["models"]["script"]
-    raw = ask(prompt, model=model, system=SYSTEM, max_tokens=16000,
+    raw = ask(prompt, model=model, system=system, max_tokens=16000,
               thinking={"type": "between_tools"})  # Sonnet 5.5: geen redeneerblok, anders slokt dat het hele tokenbudget op
     target = round(sum(p.minutes for p in plans) * wpm) + 350  # onderwerpen + opening en afsluiting
     words = len(raw.partition("\n---")[2].split())
@@ -86,11 +106,21 @@ CONCEPT:
 
 MATERIAAL:
 
-{material}""", model=model, system=SYSTEM, max_tokens=16000, thinking={"type": "between_tools"})
+{material}""", model=model, system=system, max_tokens=16000, thinking={"type": "between_tools"})
         new_words = len(expanded.partition("\n---")[2].split())
         if new_words <= words:
             break  # uitbreiding hielp niet: huidige versie houden
         raw, words = expanded, new_words
+    if words > 1.1 * target:  # streefduur: hooguit 10% afwijking
+        print(f"Script te lang ({words} van ca. {target} woorden), laat inkorten")
+        shorter = ask(f"""Hieronder staat de aflevering ({words} woorden). Het mag hooguit {round(1.1 * target)} woorden zijn.
+Kort in tot ongeveer {target} woorden: schrap herhaling en de minst belangrijke details. Behoud opbouw, hoofdstukmarkers,
+de pauzes en het antwoordformat (TITEL, SAMENVATTING, ---, script) exact.
+
+{raw}""", model=model, system=system, max_tokens=16000, thinking={"type": "between_tools"})
+        short_words = len(shorter.partition("\n---")[2].split())
+        if 0.9 * target <= short_words < words:
+            raw, words = shorter, short_words
     print(f"Script: {words} woorden (doel ca. {target})")
     head, _, script = raw.partition("\n---")
     title = summary = ""

@@ -18,103 +18,129 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: str
-    has_show: bool
+    has_show: bool = False
+    podcast_count: int = 0
 
 
-class TopicIn(BaseModel):
-    id: str | None = None
-    name: str
-    description: str = ""
-    keywords: list[str] = Field(default_factory=list)
-    feeds: list[str] = Field(default_factory=list)
-    sort_order: int = 0
+class MessageOut(BaseModel):
+    message: str
 
 
-class TopicOut(TopicIn):
-    id: str
+# ---------- podcasts ----------
 
-
-class ShowCreate(BaseModel):
-    title: str
-    description: str = ""
-    author: str = "yourownpod"
-    email: str = ""
-    language: str = "nl"
-    call_to_action: str | None = None
-    topics: list[TopicIn] = Field(default_factory=list)
-
-
-class ShowUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    author: str | None = None
-    email: str | None = None
-    language: str | None = None
-    call_to_action: str | None = None
-    keep_episodes: int | None = None
-    duration: dict[str, Any] | None = None
-    relevance: dict[str, Any] | None = None
-    voice: dict[str, Any] | None = None
-    pronunciation: dict[str, str] | None = None
+class PodcastCreate(BaseModel):
+    title: str = ""
+    topics: list[str] = Field(default_factory=list)  # vrije tekst, één onderwerp per veld
+    sources: list[str] = Field(default_factory=list)  # eigen bronnen (website- of RSS-adres), optioneel
+    duration_minutes: int | None = None  # 5, 10, 15 of 20
+    voice_id: str = ""
+    voice_name: str = ""
+    style: str = ""  # zakelijk | informeel | verhalend
     schedule: dict[str, Any] | None = None
-    topics: list[TopicIn] | None = None
-    active: bool | None = None
 
 
-class JobOut(BaseModel):
+class PodcastUpdate(BaseModel):
+    title: str | None = None
+    topics: list[str] | None = None
+    sources: list[str] | None = None
+    duration_minutes: int | None = None
+    voice_id: str | None = None
+    voice_name: str | None = None
+    style: str | None = None
+    schedule: dict[str, Any] | None = None
+
+
+class TopicOut(BaseModel):
     id: str
-    status: str
-    trigger: str
+    text: str
+
+
+class SourceOut(BaseModel):
+    id: str
+    url: str
+    kind: str
+    name: str
+    feed_url: str
     error: str | None
-    log: str
-    created_at: datetime | None
-    started_at: datetime | None
-    finished_at: datetime | None
-    duration_minutes: float | None
+
+
+class VoiceRef(BaseModel):
+    voice_id: str
+    name: str
+
+
+class NextRun(BaseModel):
+    at: datetime  # UTC
+    local: str  # bijvoorbeeld "ma 2 november om 07:00"
+    timezone: str
+
+
+class StatusOut(BaseModel):
+    code: str  # scheduled | running | published | failed | paused | skipped
+    label: str
+    detail: str
 
 
 class EpisodeSummary(BaseModel):
     guid: str
     date: str
+    published: str
     title: str
     duration: int
-    published: str
+    status: str = "published"
 
 
-class ShowOut(BaseModel):
+class PodcastOut(BaseModel):
     id: str
     title: str
-    description: str
-    author: str
-    email: str
-    language: str
-    call_to_action: str
-    keep_episodes: int
-    duration: dict[str, Any]
-    relevance: dict[str, Any]
-    models: dict[str, Any]
-    voice: dict[str, Any]
-    pronunciation: dict[str, str]
-    schedule: dict[str, Any]
-    feed_token: str
-    feed_url: str
-    active: bool
+    cover_url: str
+    has_custom_cover: bool
     topics: list[TopicOut]
+    sources: list[SourceOut]
+    duration_minutes: int
+    voice: VoiceRef
+    style: str
+    schedule: dict[str, Any]
+    next_run: NextRun | None
+    status: StatusOut
+    paused: bool
+    feed_url: str
     latest_episode: EpisodeSummary | None = None
-    latest_job: JobOut | None = None
+    episode_count: int = 0
 
 
-class FeedTestRequest(BaseModel):
-    name: str = ""
-    description: str = ""
-    keywords: list[str] = Field(default_factory=list)
-    feeds: list[str] = Field(default_factory=list)
-    lookback_hours: float = 72
+class SourceGroup(BaseModel):
+    topic: str
+    items: list[dict[str, str]]
 
 
-class BuildRequest(BaseModel):
-    max_minutes: float | None = None
+class EpisodeOut(EpisodeSummary):
+    summary: str
+    period_start: str
+    period_end: str
+    sources: list[SourceGroup]
 
 
-class MessageOut(BaseModel):
-    message: str
+class CoverIn(BaseModel):
+    image: str  # base64 of data-URL
+
+
+class SourceCheckIn(BaseModel):
+    url: str
+
+
+class DeviceIn(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+
+
+class NotificationPrefs(BaseModel):
+    notify_new: bool | None = None
+    notify_failed: bool | None = None
+
+
+class MeOut(BaseModel):
+    email: str | None
+    notify_new: bool
+    notify_failed: bool
+    push_registered: bool  # er is minstens één toestel geregistreerd
+    push_available: bool  # de server kan meldingen versturen

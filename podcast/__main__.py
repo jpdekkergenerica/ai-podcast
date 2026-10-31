@@ -78,6 +78,10 @@ def build(cfg: dict, out: Path, no_tts: bool, store: ShowStore | None = None) ->
         "chapters": ep_chapters,
         "sources": sources,
     }
+    if cfg.get("period"):  # behandelde nieuwsperiode, voor het afleveringsdetail
+        tz = ZoneInfo("Europe/Amsterdam")
+        episode["period_start"] = datetime.fromtimestamp(cfg["period"]["from"], tz=tz).isoformat(timespec="minutes")
+        episode["period_end"] = now.isoformat(timespec="minutes")
     save_episode(episode, store=store)
     save_covered(today, plans, store=store)
     (out / "tag.txt").write_text(f"ep-{stamp}")
