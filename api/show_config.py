@@ -13,6 +13,7 @@ from .defaults import (
     DEFAULT_MODELS,
     DEFAULT_RELEVANCE,
     DEFAULT_VOICE,
+    MAX_MINUTES_CAP,
 )
 from .models import CoveredItem, Episode, LearnedPronunciation, Show
 
@@ -38,7 +39,7 @@ def show_to_cfg(show: Show) -> dict:
     return {
         "podcast": {
             "title": show.title,
-            "description": show.description,
+            "description": show.description.strip() or show.title,
             "author": show.author,
             "email": show.email or "noreply@example.com",
             "language": show.language,
@@ -48,7 +49,11 @@ def show_to_cfg(show: Show) -> dict:
             "feed_url": feed_url_for(show),
             "feed_token": show.feed_token,
         },
-        "duration": {**DEFAULT_DURATION, **(show.duration or {})},
+        "duration": {
+            **DEFAULT_DURATION,
+            **(show.duration or {}),
+            "max_minutes": min(float((show.duration or {}).get("max_minutes", DEFAULT_DURATION["max_minutes"])), MAX_MINUTES_CAP),
+        },
         "relevance": {**DEFAULT_RELEVANCE, **(show.relevance or {})},
         "models": {**DEFAULT_MODELS, **(show.models or {})},
         "voice": {**DEFAULT_VOICE, **(show.voice or {})},

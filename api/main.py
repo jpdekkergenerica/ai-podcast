@@ -29,7 +29,7 @@ from .defaults import (
     DEFAULT_RELEVANCE,
     DEFAULT_VOICE,
 )
-from .limits import assert_can_enqueue_manual, clamp_max_minutes, validate_topics
+from .limits import assert_can_enqueue_manual, clamp_max_minutes, validate_duration, validate_topics
 from .models import Job, Show, Topic, User, new_feed_token
 from .schemas import (
     AppleLoginRequest,
@@ -49,7 +49,7 @@ app = FastAPI(title="Personal Podcast Config API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
-    allow_credentials=True,
+    allow_credentials=False,  # bearer-token in header, geen cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -190,6 +190,8 @@ def update_show(
     show = _require_show(db, user)
     data = body.model_dump(exclude_unset=True)
     topics = data.pop("topics", None)
+    if data.get("duration") is not None:
+        validate_duration(data["duration"])
     for key, value in data.items():
         setattr(show, key, value)
     if topics is not None:
@@ -224,6 +226,7 @@ def feed_test(
     user: Annotated[User, Depends(current_user)],
 ) -> list[dict]:
     _ = user
+    validate_topics([{"name": body.name or "test", "feeds": body.feeds}])
     return probe_feeds(
         {"name": body.name, "keywords": body.keywords, "feeds": body.feeds},
         body.lookback_hours,
@@ -247,7 +250,7 @@ def enqueue_build(
     db.add(job)
     db.commit()
     # synchrone verwerking in DEV; anders wacht de worker-poll
-    if os.environ.get("WORKER_INLINE", "1") == "1":
+    if os.environ.get("WORKER_INLINE", "0") == "1":
         from worker.run import process_job
         process_job(job.id)
         return MessageOut(message="Build gestart en verwerkt")
@@ -302,8 +305,9 @@ def private_media(show_id: str, filename: str, token: str = Query(...), db: Sess
 @app.get("/shows/{show_id}/site/{path:path}")
 def private_site(show_id: str, path: str, token: str = Query(...), db: Session = Depends(get_db)):
     _show_by_token(db, show_id, token)
-    target = site_dir(show_id) / path
-    if not target.exists() or not target.is_file():
+    root = site_dir(show_id).resolve()
+    target = (root / path).resolve()
+    if not target.is_relative_to(root) or not target.is_file():
         raise HTTPException(404)
     return FileResponse(target)
 

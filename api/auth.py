@@ -13,10 +13,14 @@ from .models import User
 
 APPLE_ISSUER = "https://appleid.apple.com"
 APPLE_JWKS = "https://appleid.apple.com/auth/keys"
-JWT_SECRET = os.environ.get("API_JWT_SECRET", "dev-secret-change-me-use-32chars!!")
+_DEV_SECRET = "dev-secret-change-me-use-32chars!!"
+JWT_SECRET = os.environ.get("API_JWT_SECRET", _DEV_SECRET)
 JWT_TTL_SECONDS = int(os.environ.get("API_JWT_TTL", str(60 * 60 * 24 * 30)))
 APPLE_CLIENT_ID = os.environ.get("APPLE_CLIENT_ID", "")
-AUTH_DEV_MODE = os.environ.get("AUTH_DEV_MODE", "1" if not APPLE_CLIENT_ID else "0") == "1"
+AUTH_DEV_MODE = os.environ.get("AUTH_DEV_MODE", "0") == "1"
+
+if not AUTH_DEV_MODE and (len(JWT_SECRET) < 32 or JWT_SECRET == _DEV_SECRET):
+    raise RuntimeError("Zet API_JWT_SECRET (minstens 32 tekens) of start lokaal met AUTH_DEV_MODE=1")
 
 _bearer = HTTPBearer(auto_error=False)
 _jwk_client: PyJWKClient | None = None

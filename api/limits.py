@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -20,6 +21,16 @@ def validate_topics(topics: list) -> None:
             raise HTTPException(400, f"Onderwerp '{name}' heeft minstens één feed nodig")
         if len(feeds) > MAX_FEEDS_PER_TOPIC:
             raise HTTPException(400, f"Maximaal {MAX_FEEDS_PER_TOPIC} feeds per onderwerp")
+        for f in feeds:
+            if urlparse(str(f).strip()).scheme not in ("http", "https"):
+                raise HTTPException(400, f"Feed '{f}' moet een http(s)-adres zijn")
+
+
+def validate_duration(duration: dict) -> None:
+    """De duur bepaalt de kosten (Claude + ElevenLabs), dus begrenzen we hem ook via de instellingen."""
+    max_minutes = duration.get("max_minutes")
+    if max_minutes is not None and not 1 <= float(max_minutes) <= MAX_MINUTES_CAP:
+        raise HTTPException(400, f"max_minutes moet tussen 1 en {MAX_MINUTES_CAP} liggen")
 
 
 def assert_can_enqueue_manual(db: Session, show: Show) -> None:
