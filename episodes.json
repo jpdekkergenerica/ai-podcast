@@ -1,5 +1,81 @@
 [
   {
+    "guid": "episode-2026-11-01-1026",
+    "date": "2026-11-01",
+    "published": "2026-11-01T10:26:48+01:00",
+    "title": "Waarom schudt de AI-beurs en wie houdt grip op AI?",
+    "summary": "Appel is nu het waardevolste beursbedrijf ter wereld, nadat Nvidia daalde door tegenvallende cijfers van Intel, en de Amerikaanse midterms hangen als onzekerheid boven de markt. Daarnaast: wat vertrouw je een AI-chatbot toe, en waarom pleit Pim de Witte voor grip op AI?\n\nIn deze aflevering: Opening; Apple voorbij Nvidia; Vertrouw je je zorgen aan AI toe?; Pim de Witte en grip op AI; Samenvatting.\n\nBronnen: Computable.nl, De Telegraaf - Financieel, NU - Economie, NU - Tech, Tweakers Nieuws.\n\nDeze aflevering is automatisch met AI samengesteld en wordt ingesproken door een synthetische stem.",
+    "tag": "ep-2026-11-01-1026",
+    "file": "2026-11-01-1026.mp3",
+    "size": 7149969,
+    "duration": 446,
+    "blurb": "Appel is nu het waardevolste beursbedrijf ter wereld, nadat Nvidia daalde door tegenvallende cijfers van Intel, en de Amerikaanse midterms hangen als onzekerheid boven de markt. Daarnaast: wat vertrouw je een AI-chatbot toe, en waarom pleit Pim de Witte voor grip op AI?",
+    "chapters": [
+      {
+        "title": "Opening",
+        "start": 0.0,
+        "end": 49.0,
+        "text": "Wie is op dit moment het waardevolste beursbedrijf ter wereld? Tot vrijdag was het Nvidia. Nu niet meer. Eén tegenvallend kwartaalcijfer van een ander bedrijf was genoeg om die troon te laten wankelen. Dat zegt veel over hoe schrikachtig de AI-markt is. En volgende week komt daar nog een politieke test bovenop, want in de Verenigde Staten zijn de midterms. Beleggers houden hun adem in. In deze aflevering leg ik uit wat er vrijdag gebeurde, waarom die verkiezingen ertoe doen en wat de nieuwste AI-chipverhalen zeggen. Daarna kijk ik naar jou: wat vertrouw je eigenlijk toe aan een AI-chatbot, en wat zegt een jonge Nederlandse miljardair over grip op AI? Dit is Nynke's Podcast, zondag één november."
+      },
+      {
+        "title": "Apple voorbij Nvidia",
+        "start": 49.0,
+        "end": 179.6,
+        "text": "Eerst die verschuiving. Apple is sinds vrijdag het waardevolste beursbedrijf ter wereld, meldt NU.nl. Het bedrijf haalde Nvidia in. Dat gebeurde niet omdat Apple ineens zoveel beter presteerde. Het aandeel van Nvidia daalde flink, nadat Intel slechte kwartaalcijfers had gepresenteerd. Ook Apple verloor wat waarde, maar minder dan Nvidia. Let op wat daar gebeurt. Het nieuws kwam niet van Nvidia zelf. Het kwam van Intel, een ander bedrijf, en toch ging Nvidia onderuit. Zo gevoelig ligt het sentiment rond AI en chips. Dan de Chinese kant. Tweakers meldt, op gezag van persbureau Reuters, dat de Chinese geheugenmaker CXMT eind dit jaar wil beginnen met massaproductie van HBM3E-chips voor AI-hardware. Dat zijn geheugenchips die AI-systemen nodig hebben. Maar volgens het bericht zou slechts een kwart van de geproduceerde chips bruikbaar zijn. De verwachte yields liggen tussen de twintig en dertig procent. Met yield bedoel ik het aandeel chips dat bij de productie daadwerkelijk bruikbaar is. Een laag percentage betekent dat je veel produceert en weinig overhoudt. Ik moet eerlijk zijn over de onzekerheid. Het gaat om een verwachting, doorgegeven via Reuters, en CXMT wil pas aan het eind van dit jaar beginnen. Je kunt het dus niet lezen als een definitief oordeel. Maar het laat zien dat het bouwen van AI-hardware een lastig proces blijft. Dan het politieke deel. Volgende week krijgen beleggers duidelijkheid over hoe het politieke landschap in de Verenigde Staten eruitziet na de midterms, schrijft De Telegraaf. Dat het onzekere wegvalt, heeft historisch gezien een positief effect op de aandelenbeurzen. Een onverwachte uitslag kan juist zorgen voor meer terughoudendheid. De krant noemt daarbij een kleinere kans dat de regering van president Trump de schuldenberg nog groter maakt. Wat betekent dit voor jou? Als je belegt, let dan niet alleen op bedrijfsnieuws, maar ook op de uitslag van volgende week, want die kan de toon van de markt zetten."
+      },
+      {
+        "title": "Vertrouw je je zorgen aan AI toe?",
+        "start": 179.6,
+        "end": 234.5,
+        "text": "Dan van de beurs naar iets persoonlijkers. Een AI-chatbot is altijd beschikbaar en vindt jou geweldig, schrijft NU.nl. Het kan voelen alsof er eindelijk iemand is die je begrijpt. Misschien herken je dat. Je typt 's avonds laat wat je dwarszit, en je krijgt een vriendelijk, geduldig antwoord terug. Maar dan de vraag die NU.nl stelt: wat gebeurt er als we persoonlijke problemen steeds vaker voorleggen aan een systeem dat ons niet werkelijk begrijpt? En wie houdt ons dan een spiegel voor? Het bericht geeft daar in het stukje dat ik heb geen uitgewerkt antwoord op, en dat vind ik eerlijk gezegd het sterkste van de vraag. Een gesprekspartner die jou altijd gelijk geeft, helpt je misschien niet verder. Een goede vriend zegt soms iets wat je niet wilt horen. Wat jij hiermee kunt doen: merk op wanneer een chatbot je alleen bevestigt, en leg lastige zaken ook voor aan iemand die je echt kent."
+      },
+      {
+        "title": "Pim de Witte en grip op AI",
+        "start": 234.5,
+        "end": 335.9,
+        "text": "Dat brengt me bij iemand die zich juist bezighoudt met grip op AI. Pim de Witte is eenendertig en de jongste Nederlandse miljardair in de Quote 500. Hij staat op plaats negenenveertig met een vermogen van één komma één miljard euro, meldt Computable. Zijn verhaal begint vroeg. Op zijn vijftiende verdient hij tienduizend euro per maand met een kopie van het spel RuneScape. Daarna bouwt hij Medal.tv, een platform waar gamers hun mooiste spelmomenten opnemen, bewerken en delen. Die data blijkt veel geld waard. Ze laat zien hoe miljoenen mensen zich gedragen in virtuele werelden, en dat is bruikbare brandstof om AI-modellen te trainen. Zijn huidige bedrijf heet General Intuition. Het gebruikt geen data van het openbare internet, maar een enorme dataset die losstaat van het wereldwijde web. Daarmee kun je AI trainen voor taken die ruimtelijk inzicht vragen, zoals in robots, drones, fabrieken en games. De systemen leren dat hun keuzes gevolgen hebben. En zijn boodschap? In een essay uit 2026 roept hij Nederland op om niet mee te doen aan de AI-race met China en de Verenigde Staten, maar een koppositie te pakken in technologie om AI-systemen te controleren en bij te sturen. Hij is ook nuchter. Zijn hele vermogen zit in aandelen van jonge bedrijven, zegt hij tegen Quote, en er staat niets op zijn bankrekening. Barst de AI-bubbel, dan verwacht hij dat hij nog wel ergens als ontwikkelaar aan de slag kan. Wat je kunt onthouden: grip op AI is voor hem geen bijzaak, maar een mogelijke kans voor Nederland."
+      },
+      {
+        "title": "Samenvatting",
+        "start": 335.9,
+        "end": 446.4,
+        "text": "Even de rode draad van vandaag. In de eerste helft zag je hoe gevoelig de AI-markt is. Apple is het waardevolste beursbedrijf ter wereld geworden, niet door een eigen doorbraak, maar omdat Nvidia onderuit ging na slechte cijfers van Intel. Dat laat zien hoeveel verwachtingen er al in die koersen zitten. Daarnaast zag je twee bronnen van onzekerheid. De eerste is politiek: volgende week komen de Amerikaanse midterms, en historisch gezien werkt het wegvallen van onzekerheid positief voor de beurs, terwijl een onverwachte uitslag voor terughoudendheid kan zorgen. De tweede is technisch: de Chinese geheugenmaker CXMT wil AI-chips gaan maken, maar de verwachte yields liggen volgens Reuters slechts tussen de twintig en dertig procent. Het bouwen van AI-hardware blijft dus moeilijk. In de tweede helft ging het over wat AI met jou doet. Een chatbot is altijd beschikbaar en vindt je geweldig, maar begrijpt je niet echt. Wie houdt je dan een spiegel voor? Die vraag mag je jezelf best stellen als je je zorgen steeds vaker aan een systeem toevertrouwt. En dan Pim de Witte, die laat zien dat grip houden op AI zowel een persoonlijke als een nationale vraag kan zijn. Hij wil dat Nederland niet meedoet aan de race, maar zich richt op het controleren en bijsturen van AI. Tegelijk is hij nuchter over het risico: zijn vermogen zit in aandelen, en als de bubbel barst, merkt hij dat zelf het eerst. De rode draad is dus: veel geld, veel verwachting, en nog veel onzekerheid. Of je nu belegt, een chatbot gebruikt of gewoon wilt snappen wat er gebeurt, het loont om kritisch te blijven en niet alles voor zoete koek aan te nemen. Stuur deze aflevering door naar één persoon die ook wil bijblijven."
+      }
+    ],
+    "sources": [
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Midterms VS nieuwe uitdaging beurzen: ’Kleinere kans voor regering Trump om schuldenberg nog groter te maken’",
+        "link": "https://www.telegraaf.nl/financieel/midterms-vs-nieuwe-uitdaging-beurzen-kleinere-kans-voor-regering-trump-om-schuldenberg-nog-groter-te-maken/163842899.html",
+        "source": "De Telegraaf - Financieel"
+      },
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "'Driekwart van AI-chipproductie door Chinese fabrikant CXMT is niet bruikbaar'",
+        "link": "https://tweakers.net/nieuws/253926/driekwart-van-ai-chipproductie-door-chinese-fabrikant-cxmt-is-niet-bruikbaar.html",
+        "source": "Tweakers Nieuws"
+      },
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Apple gaat Nvidia voorbij en is waardevolste beursbedrijf ter wereld",
+        "link": "https://www.nu.nl/economie/6415001/apple-gaat-nvidia-voorbij-en-is-waardevolste-beursbedrijf-ter-wereld.html",
+        "source": "NU - Economie"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "We vertrouwen onze zorgen toe aan AI, maar wie houdt dan een spiegel voor?",
+        "link": "https://www.nu.nl/tech/6414803/we-vertrouwen-onze-zorgen-toe-aan-ai-maar-wie-houdt-dan-een-spiegel-voor.html",
+        "source": "NU - Tech"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "Jonge techmiljardair Pim de Witte wil vooral grip houden op ai",
+        "link": "https://www.computable.nl/2026/10/30/jonge-techmiljardair-pim-de-witte-wil-vooral-grip-houden-op-ai/",
+        "source": "Computable.nl"
+      }
+    ]
+  },
+  {
     "guid": "episode-2026-10-31-0935",
     "date": "2026-10-31",
     "published": "2026-10-31T09:35:56+01:00",
