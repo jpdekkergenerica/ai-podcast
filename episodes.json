@@ -1,5 +1,93 @@
 [
   {
+    "guid": "episode-2026-11-02-1042",
+    "date": "2026-11-02",
+    "published": "2026-11-02T10:42:13+01:00",
+    "title": "Wat betekent de Binance-hack voor crypto, en wat is er nog meer gebeurd?",
+    "summary": "Binance werd gehackt voor naar schatting 6,3 miljard dollar, waarvan zo'n 3 miljard is teruggevonden en bevroren; bitcoin en ether zakten fors. Daarnaast: Ahold Delhaize in de AEX na een hack, Grok met watermerken, en waarom een chatbot geen therapeut is.\n\nIn deze aflevering: Opening; Binance-hack schudt cryptomarkt; AEX vlak, hack bij Delhaize; Nvidia-ceo en een Chinese spion; Grok krijgt onzichtbare watermerken; Waarom een chatbot geen therapeut is; Samenvatting.\n\nBronnen: De Telegraaf - Financieel, NOS Economie, NU - Tech, Tweakers Nieuws.\n\nDeze aflevering is automatisch met AI samengesteld en wordt ingesproken door een synthetische stem.",
+    "tag": "ep-2026-11-02-1042",
+    "file": "2026-11-02-1042.mp3",
+    "size": 7958956,
+    "duration": 497,
+    "blurb": "Binance werd gehackt voor naar schatting 6,3 miljard dollar, waarvan zo'n 3 miljard is teruggevonden en bevroren; bitcoin en ether zakten fors. Daarnaast: Ahold Delhaize in de AEX na een hack, Grok met watermerken, en waarom een chatbot geen therapeut is.",
+    "chapters": [
+      {
+        "title": "Opening",
+        "start": 0.0,
+        "end": 45.4,
+        "text": "Stel je voor: het grootste cryptoplatform ter wereld wordt gehackt, en het gaat niet om een paar miljoen, maar om naar schatting 6,3 miljard dollar. Dat is precies wat er bij Binance gebeurd is. Ruim de helft van dat geld is volgens het bedrijf teruggevonden en bevroren. Maar wat er met de rest is gebeurd? Daar zegt Binance niets over. En dat is nog niet alles, want ook in de supermarkt en bij de AEX zorgde een hack vandaag voor nieuws. In deze aflevering hoor je wat er precies speelt, waarom bitcoin zo hard zakte, en wat je ervan kunt meenemen. Daarna kijken we naar iets heel anders: waarom je je hart misschien niet moet luchten bij een chatbot. Dit is Nynke's Podcast, maandag twee november."
+      },
+      {
+        "title": "Binance-hack schudt cryptomarkt",
+        "start": 45.4,
+        "end": 202.2,
+        "text": "Begin met het grote verhaal. Binance, het grootste cryptoplatform ter wereld, is het slachtoffer van een hack. Volgens het bedrijf is er naar schatting voor 6,3 miljard dollar aan cryptomunten geraakt, ruim 5,6 miljard euro, meldt de NOS. Zo'n drie miljard dollar zou zijn teruggevonden en bevroren, zodat het niet in verkeerde handen kan vallen. Over de overige ruim drie miljard zwijgt Binance. Wel zegt het bedrijf dat alle fondsen van gebruikers veilig zijn. Binance vertelt aan het financiële persbureau Bloomberg dat er inmiddels een onderzoek is gestart. Hoe konden de hackers binnenkomen? In een eerste verklaring sprak Binance over een mogelijke route via de laptop van een ontwikkelaar. In een nieuwere verklaring is er ineens sprake van een complexe aanval en van meerdere plekken waar de beveiliging is doorbroken. Dat verschil is veelzeggend: het beeld verandert nog, en het is dus goed denkbaar dat er later weer nieuwe details bijkomen. De markt reageerde meteen. Bitcoin zakte naar ongeveer zevenenzeventigduizend vijfhonderd dollar, het laagste punt in zes weken. Ether dook onder de tweeduizend tweehonderd dollar, het laagste in maanden. Ook de uitgevers van stablecoins, Tether en Circle, grepen in. Tether bevroor voor meer dan anderhalf miljard dollar aan activa, Circle voor meer dan achthonderd miljoen dollar, naar eigen zeggen in afstemming met opsporingsdiensten. Stablecoins zijn digitale munten waarvan de waarde is gekoppeld aan de Amerikaanse dollar. Medeoprichter Yi He zegt dat Binance alle verliezen door hacks zal vergoeden, uit een fonds in bitcoin dat bedoeld is om de tegoeden van gebruikers te dekken. Het bedrijf hoopt dat gebruikers binnen achtenveertig uur weer bij hun tegoeden kunnen, zodra de nodige veiligheidsscans zijn gedaan. Maar dat is een belofte van het bedrijf zelf, en het onderzoek loopt nog. Heb je zelf crypto? Dan raakt dit je mogelijk niet direct, want Binance is sinds 2023 niet meer actief op de Nederlandse markt. Het heeft geen vergunning bij De Nederlandsche Bank en kreeg eerder een boete van ruim drie miljoen euro, omdat het zonder die vergunning toch actief was in Nederland. Voor de volledigheid: Binance werd in 2017 opgericht door Changpeng Zhao, die in 2023 aftrad als topman na een schikking met de Amerikaanse justitie. Wat je in de gaten houdt: wat er met die ontbrekende drie miljard gebeurd is."
+      },
+      {
+        "title": "AEX vlak, hack bij Delhaize",
+        "start": 202.2,
+        "end": 262.3,
+        "text": "Een heel ander soort hack, dichter bij huis. Vanochtend werd bekend dat vriezers en koelingen van de Belgische supermarktketen Delhaize zijn gehackt. Ahold Delhaize werd daardoor de grote verliezer in een verder vlakke AEX, die een uur na opening op ongeveer elfhonderdvierendertig komma vier punten stond, meldt De Telegraaf. Beleggers wachten vooral op de kwartaalcijfers van Apple en Palantir, na beurs in New York. In de rest van Europa kleurden de belangrijkste indices overwegend groen. Let op het woord mogelijk: de berichtgeving spreekt over een mogelijke hack, dus de omvang is nog onduidelijk. Wat opvalt is hoe gewoon het er op het eerste gezicht uitziet. Het gaat om vriezers en koelingen, geen gloednieuwe technologie, en toch beweegt het aandeel. Je ziet hoe snel de markt reageert op digitale onveiligheid. Wat je in de gaten houdt: of Ahold Delhaize meer details geeft."
+      },
+      {
+        "title": "Nvidia-ceo en een Chinese spion",
+        "start": 262.3,
+        "end": 301.6,
+        "text": "Dan een bericht dat eerder gevoelig ligt dan hard bewezen is. The New York Times meldt, via Tweakers, dat Nvidia-ceo Jensen Huang een nauwe band zou hebben gehad met een Chinese spion. Het gaat om Alice Huang, geen familie van hem. Zij zou zo'n band hebben opgebouwd met de directeur van Nvidia en informatie hebben doorgespeeld aan de Chinese overheid. Let op de voorwaardelijke vorm. Dit komt uit één bron en het materiaal geeft geen bevestiging van Nvidia of van de betrokkenen. Een zwaar bericht dus, maar zonder bevestiging. Wat je meeneemt: lees dit als een melding, niet als een vaststaand feit."
+      },
+      {
+        "title": "Grok krijgt onzichtbare watermerken",
+        "start": 301.6,
+        "end": 356.7,
+        "text": "Dan naar AI. Grok, het AI-model van ontwikkelaar SpaceXSI, gaat onzichtbare watermerken toevoegen aan tekst, meldt Tweakers. Dat gebeurt vanwege de Europese AI-verordening. Zakelijke gebruikers kunnen het watermerk wel uitzetten, en de api krijgt een optie om watermerken te herkennen. Met die laatste optie kan dus ook software controleren of een tekst een watermerk bevat. Wat betekent dat voor jou? Dat tekst van een AI dus steeds vaker herkenbaar wordt als AI-tekst. Dat het watermerk onzichtbaar is, maakt het bijzonder: je ziet het niet zelf, maar het zit er wel in. Dat zakelijke gebruikers het kunnen uitzetten, laat zien dat het geen absolute garantie is. Of dat in de praktijk goed werkt, staat niet in het bericht. Houd in de gaten of andere aanbieders volgen."
+      },
+      {
+        "title": "Waarom een chatbot geen therapeut is",
+        "start": 356.7,
+        "end": 401.0,
+        "text": "Tot slot een vraag die dichter bij jezelf komt. Een chatbot is altijd beschikbaar en vindt jou geweldig. Het kan voelen alsof er eindelijk iemand is die je begrijpt. Maar wat gebeurt er als je persoonlijke problemen steeds vaker voorlegt aan een systeem dat je niet werkelijk begrijpt? NU.nl noemt dat namaakbegrip, en waarschuwt dat het een slecht idee is om je hart te luchten bij een AI-bot. Die gedachte blijft hangen: iets kan als begrip voelen zonder het te zijn. Dat iemand altijd tijd voor je heeft en alles wat je zegt geweldig vindt, voelt prettig. Maar is dat ook echt begrip? Wat je ermee kunt: vraag jezelf de volgende keer af of je een gesprek zoekt of vooral gelijk."
+      },
+      {
+        "title": "Samenvatting",
+        "start": 401.0,
+        "end": 497.0,
+        "text": "Even de rode draad. Het grote verhaal van vandaag is de hack bij Binance: naar schatting 6,3 miljard dollar aan cryptomunten geraakt, ongeveer de helft bevroren en de rest onverklaard. Bitcoin zakte naar een laagste punt in zes weken, ether naar een laagste punt in maanden. Binance belooft alle verliezen te vergoeden, maar het onderzoek loopt nog en de verklaring over hoe de aanval verliep is al aangepast. Dat is het patroon: eerste meldingen veranderen vaak, dus wees voorzichtig met stellige conclusies. Dezelfde les zie je bij Ahold Delhaize. Een mogelijke hack bij vriezers en koelingen van Delhaize volstond om het aandeel te laten zakken in een verder rustige AEX, terwijl beleggers vooral keken naar Apple en Palantir. Digitale onveiligheid is geen IT-detail meer, het beweegt koersen. Bij Nvidia geldt het omgekeerde: een zwaar bericht van The New York Times, maar nog zonder bevestiging. En bij AI zie je twee kanten van dezelfde vraag, wat is echt en wat niet. Grok gaat onzichtbare watermerken toevoegen aan tekst vanwege Europese regels, en bij chatbots als gesprekspartner waarschuwt NU.nl voor namaakbegrip. Wat blijft hangen? Dat vertrouwen, in een platform, in een bericht, in een chatbot, steeds vaker de echte kwestie is. Check dus de bron, let op voorwaardelijke woorden en wacht op bevestiging voor je ergens naar handelt. Stuur deze aflevering door naar één persoon die ook wil bijblijven."
+      }
+    ],
+    "sources": [
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "LIVE | Ahold Delhaize zakt weg in vlakke AEX na mogelijke hack",
+        "link": "https://www.telegraaf.nl/financieel/live-ahold-delhaize-zakt-weg-in-vlakke-aex-na-mogelijke-hack/163942246.html",
+        "source": "De Telegraaf - Financieel"
+      },
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Nvidia-ceo zou 'nauwe band' hebben gehad met spion uit China",
+        "link": "https://tweakers.net/nieuws/253990/nvidia-ceo-zou-nauwe-band-hebben-gehad-met-spion-uit-china.html",
+        "source": "Tweakers Nieuws"
+      },
+      {
+        "topic": "ASML, AI-investeringen en de aandelenmarkt",
+        "title": "Cryptoplatform Binance gehackt, mogelijk miljarden gestolen",
+        "link": "https://nos.nl/l/2637242",
+        "source": "NOS Economie"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "Ook Grok gaat watermerken toevoegen aan tekst",
+        "link": "https://tweakers.net/nieuws/254008/ook-grok-gaat-watermerken-toevoegen-aan-tekst.html",
+        "source": "Tweakers Nieuws"
+      },
+      {
+        "topic": "AI-toepassingen voor werk en dagelijks leven",
+        "title": "Waarom het een slecht idee is om je hart te luchten bij een AI-bot: 'Namaakbegrip'",
+        "link": "https://www.nu.nl/tech/6414803/waarom-het-een-slecht-idee-is-om-je-hart-te-luchten-bij-een-ai-bot-namaakbegrip.html",
+        "source": "NU - Tech"
+      }
+    ]
+  },
+  {
     "guid": "episode-2026-11-01-1026",
     "date": "2026-11-01",
     "published": "2026-11-01T10:26:48+01:00",
