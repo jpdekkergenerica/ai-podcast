@@ -18,7 +18,7 @@ databases:
     engine: PG
     version: "16"
     production: true
-    cluster_name: yourownpod-db   # maak dit cluster eerst aan in DO (Databases > Create, PostgreSQL 16, ams3) met precies deze naam
+    cluster_name: yourownpod      # naam van het bestaande databasecluster in DO
     db_name: defaultdb
     db_user: doadmin              # de dev-database geeft geen schrijfrecht op schema public; doadmin wel
 
