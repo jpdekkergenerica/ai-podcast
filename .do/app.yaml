@@ -4,6 +4,15 @@
 name: yourownpod
 region: ams
 
+# Geheimen staan op app-niveau (Settings > App-Level Environment Variables) en gelden voor api en worker.
+# Zet ze niet nog eens per component: een lege waarde daar overschrijft die van app-niveau.
+envs:
+  - { key: API_JWT_SECRET, scope: RUN_TIME, type: SECRET }
+  - { key: SPACES_KEY, scope: RUN_TIME, type: SECRET }
+  - { key: SPACES_SECRET, scope: RUN_TIME, type: SECRET }
+  - { key: ANTHROPIC_API_KEY, scope: RUN_TIME, type: SECRET }
+  - { key: ELEVENLABS_API_KEY, scope: RUN_TIME, type: SECRET }
+
 databases:
   - name: db
     engine: PG
@@ -25,16 +34,12 @@ services:
     envs:
       - { key: DATABASE_URL, scope: RUN_TIME, value: "${db.DATABASE_URL}" }
       - { key: AUTH_DEV_MODE, scope: RUN_TIME, value: "0" }
-      - { key: API_JWT_SECRET, scope: RUN_TIME, type: SECRET }
       - { key: PUBLIC_BASE_URL, scope: RUN_TIME, value: "${APP_URL}" }  # vervang door je eigen domein als dat er is
       - { key: CORS_ORIGINS, scope: RUN_TIME, value: "*" }
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }
       - { key: SPACES_REGION, scope: RUN_TIME, value: ams3 }
-      - { key: SPACES_KEY, scope: RUN_TIME, type: SECRET }
-      - { key: SPACES_SECRET, scope: RUN_TIME, type: SECRET }
       - { key: APPLE_CLIENT_ID, scope: RUN_TIME, value: nl.generica.personalpodcast }
-      - { key: ELEVENLABS_API_KEY, scope: RUN_TIME, type: SECRET }
 
 workers:
   - name: worker
@@ -52,12 +57,5 @@ workers:
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }
       - { key: SPACES_REGION, scope: RUN_TIME, value: ams3 }
-      - { key: SPACES_KEY, scope: RUN_TIME, type: SECRET }
-      - { key: SPACES_SECRET, scope: RUN_TIME, type: SECRET }
-      - { key: ANTHROPIC_API_KEY, scope: RUN_TIME, type: SECRET }
-      - { key: ELEVENLABS_API_KEY, scope: RUN_TIME, type: SECRET }
-      - { key: APNS_KEY_ID, scope: RUN_TIME, type: SECRET }
-      - { key: APNS_TEAM_ID, scope: RUN_TIME, type: SECRET }
-      - { key: APNS_AUTH_KEY, scope: RUN_TIME, type: SECRET }
       - { key: APNS_BUNDLE_ID, scope: RUN_TIME, value: nl.generica.personalpodcast }
       - { key: APNS_USE_SANDBOX, scope: RUN_TIME, value: "0" }
