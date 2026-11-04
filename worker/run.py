@@ -22,7 +22,7 @@ from api.models import Job, Show
 from api.schedule import as_utc, due_publication
 from api.serializers import MONTHS, last_scheduled_for
 from api.show_config import DbShowStore, media_url_for, show_to_cfg
-from api.storage import site_dir, store_audio
+from api.storage import push_tree, site_dir, store_audio
 from podcast.__main__ import build
 from podcast.feed import write_site
 from sqlalchemy.orm import joinedload
@@ -46,7 +46,7 @@ def refresh_feed(show_id: str) -> None:
             return media_url_for(show, ep["file"])
 
         write_site(cfg, out, store=store, audio_url_for=audio_url_for)
-        # chapters/transcripts staan al onder out/; audio blijft in storage/.../audio
+        push_tree(out)  # chapters/transcripts staan al onder out/; audio staat apart (store_audio)
     finally:
         db.close()
 

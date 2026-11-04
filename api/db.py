@@ -5,6 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./data/app.db")
+# DigitalOcean (en Heroku-achtige hosts) geven postgresql:// of postgres://; SQLAlchemy heeft hier de psycopg3-driver nodig
+for _prefix in ("postgres://", "postgresql://"):
+    if DATABASE_URL.startswith(_prefix):
+        DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len(_prefix):]
 
 # SQLite heeft check_same_thread=False nodig voor FastAPI
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

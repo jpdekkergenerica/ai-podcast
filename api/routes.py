@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 from datetime import datetime, timezone
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -32,7 +31,7 @@ from .schemas import (
 )
 from .serializers import episode_out, episode_summary, podcast_out
 from .sources import check_source
-from .storage import show_dir
+from .storage import push as push_file, remove, remove_show, show_dir
 
 router = APIRouter(prefix="/me")
 
@@ -222,7 +221,7 @@ def rotate_feed_token(podcast_id: str, user: Annotated[User, Depends(current_use
 @router.delete("/podcasts/{podcast_id}", response_model=MessageOut)
 def delete_podcast(podcast_id: str, user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> MessageOut:
     show = _load(db, user, podcast_id)
-    shutil.rmtree(show_dir(show.id), ignore_errors=True)
+    remove_show(show.id)
     db.delete(show)
     db.commit()
     return MessageOut(message="Podcast verwijderd")
@@ -239,10 +238,11 @@ def set_cover(podcast_id: str, body: CoverIn, user: Annotated[User, Depends(curr
         raise HTTPException(400, str(e)) from e  # de vorige afbeelding blijft ongemoeid
     name = f"cover-{datetime.now(timezone.utc):%Y%m%d%H%M%S}.jpg"
     covers.save_atomic(show_dir(show.id) / name, jpeg)
+    push_file(show_dir(show.id) / name)
     old, show.cover_file = show.cover_file, name
     db.commit()
     if old:
-        (show_dir(show.id) / old).unlink(missing_ok=True)
+        remove(show_dir(show.id) / old)
     _refresh_feed(show.id)
     return podcast_out(_fresh(db, user, podcast_id))
 
@@ -251,7 +251,7 @@ def set_cover(podcast_id: str, body: CoverIn, user: Annotated[User, Depends(curr
 def delete_cover(podcast_id: str, user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> PodcastOut:
     show = _load(db, user, podcast_id)
     if show.cover_file:
-        (show_dir(show.id) / show.cover_file).unlink(missing_ok=True)
+        remove(show_dir(show.id) / show.cover_file)
         show.cover_file = None
         db.commit()
         _refresh_feed(show.id)  # terug naar de standaardomslag

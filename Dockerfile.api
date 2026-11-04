@@ -7,5 +7,7 @@ COPY podcast ./podcast
 COPY api ./api
 COPY worker ./worker
 COPY scripts ./scripts
+COPY app ./app
+COPY assets ./assets
 ENV PORT=8000
 CMD ["python", "-m", "api.main"]

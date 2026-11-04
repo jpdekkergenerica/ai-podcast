@@ -8,7 +8,6 @@ Start lokaal:
 from __future__ import annotations
 
 import os
-import shutil
 from pathlib import Path
 from typing import Annotated
 
@@ -23,7 +22,7 @@ from .db import get_db, init_db
 from .models import Show, User
 from .routes import router
 from .schemas import AppleLoginRequest, DevLoginRequest, MessageOut, TokenResponse
-from .storage import audio_path, site_dir, show_dir
+from .storage import audio_path, ensure, remove_show, site_dir
 
 app = FastAPI(title="yourownpod API", version="0.1.0")
 app.add_middleware(
@@ -147,7 +146,7 @@ def auth_dev(body: DevLoginRequest, db: Session = Depends(get_db)) -> TokenRespo
 @app.delete("/me/account", response_model=MessageOut)
 def delete_account(user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> MessageOut:
     for show in db.query(Show).filter(Show.user_id == user.id).all():
-        shutil.rmtree(show_dir(show.id), ignore_errors=True)
+        remove_show(show.id)
     db.delete(user)
     db.commit()
     return MessageOut(message="Account verwijderd")
@@ -162,7 +161,7 @@ app.include_router(router)
 def private_feed(show_id: str, token: str = Query(...), db: Session = Depends(get_db)):
     show = _show_by_token(db, show_id, token)
     feed_file = site_dir(show.id) / "feed.xml"
-    if not feed_file.exists():
+    if not ensure(feed_file, fresh=True):
         # lege feed genereren zodat Apple kan abonneren vóór de eerste aflevering
         from worker.run import refresh_feed
         refresh_feed(show.id)
@@ -176,19 +175,19 @@ def private_media(show_id: str, filename: str, token: str = Query(...), db: Sess
     if "/" in filename or ".." in filename:
         raise HTTPException(400, "Ongeldige bestandsnaam")
     _show_by_token(db, show_id, token)
-    if filename == "cover.jpg" and not (site_dir(show_id) / "cover.jpg").exists():
+    if filename == "cover.jpg" and not ensure(site_dir(show_id) / "cover.jpg", fresh=True):
         from worker.run import refresh_feed  # omslag ontbreekt nog (nooit een feed geschreven): nu maken
         refresh_feed(show_id)
     path = audio_path(show_id, filename)
-    if not path.exists():
+    if not ensure(path):
         # chapters/transcripts onder site/
         alt = site_dir(show_id) / filename
-        if alt.exists():
+        if ensure(alt, fresh=True):
             return FileResponse(alt)
         nested = None
-        for folder in ("chapters", "transcripts", "audio"):
-            candidate = site_dir(show_id) / folder / filename if folder != "audio" else audio_path(show_id, filename)
-            if candidate.exists():
+        for folder in ("chapters", "transcripts"):
+            candidate = site_dir(show_id) / folder / filename
+            if ensure(candidate, fresh=True):
                 nested = candidate
                 break
         if nested is None:
@@ -202,7 +201,7 @@ def private_site(show_id: str, path: str, token: str = Query(...), db: Session =
     _show_by_token(db, show_id, token)
     root = site_dir(show_id).resolve()
     target = (root / path).resolve()
-    if not target.is_relative_to(root) or not target.is_file():
+    if not target.is_relative_to(root) or not ensure(target, fresh=True):
         raise HTTPException(404)
     return FileResponse(target)
 

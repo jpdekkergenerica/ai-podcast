@@ -41,8 +41,12 @@ def merged_schedule(raw: dict | None) -> dict:
 
 
 def cover_path_for(show: Show):
-    from .storage import show_dir
-    return (show_dir(show.id) / show.cover_file) if show.cover_file else None
+    from .storage import ensure, show_dir
+    if not show.cover_file:
+        return None
+    path = show_dir(show.id) / show.cover_file
+    ensure(path)
+    return path
 
 
 def show_to_cfg(show: Show, since: float | None = None) -> dict:
