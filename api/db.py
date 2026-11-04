@@ -11,7 +11,15 @@ for _prefix in ("postgres://", "postgresql://"):
         DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len(_prefix):]
 
 # SQLite heeft check_same_thread=False nodig voor FastAPI
-_connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+# PostgreSQL 15+ geeft gewone gebruikers geen schrijfrecht op schema public (o.a. DigitalOcean). We werken daarom in een eigen
+# schema; bestaat dat niet en kan het niet gemaakt worden, dan valt de zoekpad vanzelf terug op public.
+DB_SCHEMA = os.environ.get("DB_SCHEMA", "app")
+_IS_PG = DATABASE_URL.startswith("postgresql")
+_connect_args = (
+    {"check_same_thread": False} if DATABASE_URL.startswith("sqlite")
+    else {"options": f"-csearch_path={DB_SCHEMA},public"} if _IS_PG
+    else {}
+)
 engine = create_engine(DATABASE_URL, connect_args=_connect_args, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
@@ -33,8 +41,19 @@ def init_db() -> None:
     if DATABASE_URL.startswith("sqlite"):
         Path = __import__("pathlib").Path
         Path("data").mkdir(exist_ok=True)
+    if _IS_PG:
+        _ensure_schema()
     Base.metadata.create_all(bind=engine)
     _add_missing_columns()
+
+
+def _ensure_schema() -> None:
+    from sqlalchemy import text
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{DB_SCHEMA}"'))
+    except Exception as e:  # noqa: BLE001  (geen recht, of een andere instantie was ons voor)
+        print(f"Schema {DB_SCHEMA} niet aangemaakt: {type(e).__name__}; ga verder met het bestaande zoekpad")
 
 
 def _add_missing_columns() -> None:

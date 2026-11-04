@@ -16,7 +16,7 @@ envs:
 databases:
   - name: db
     engine: PG
-    version: "14"          # 15+ geeft de app-gebruiker geen schrijfrecht op schema public (permission denied)
+    version: "16"
     production: false        # dev-database; zet op true en vul cluster_name voor een beheerd productiecluster
 
 services:
