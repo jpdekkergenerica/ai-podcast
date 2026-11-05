@@ -58,7 +58,9 @@ def ask_json(prompt: str, *, model: str, required: str, kind: type, system: str 
             raise RuntimeError(f"{model} gaf geen leesbare JSON (sleutel {required})") from e
 
 
-SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": 5}
+# De basisversie: de nieuwere (…20260209) laat het model zelf code draaien om resultaten te filteren, en dat liep vast
+# ("Results are strings-in-dict; fix printing.") met een lege lijst als gevolg.
+SEARCH_TOOL = {"type": "web_search_20250305", "name": "web_search", "max_uses": 5}
 
 
 def ask_with_search(prompt: str, *, model: str, system: str = "", max_tokens: int = 8000,

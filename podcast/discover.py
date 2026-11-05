@@ -77,6 +77,13 @@ Antwoord uitsluitend met JSON:
 {{"items": [{{"title": "...", "summary": "twee zinnen in het Nederlands met de kernfeiten", "url": "https://...", "source": "naam van de bron", "published": "JJJJ-MM-DD, of JJJJ-MM-DDTUU:MM als het tijdstip bekend is"}}]}}
 Is er in deze periode geen nieuws, antwoord dan {{"items": []}}."""
     text, seen = ask(prompt, model=model, system=DISCOVERY_SYSTEM)
+    for attempt in (2, 3):
+        # Zoekresultaten gevonden maar toch een lege of onleesbare lijst: het model liep vast, geen echte nieuwsloze periode.
+        if _json_items(text) or not seen:
+            break
+        print(f"[zoeken] poging {attempt}: {len(seen)} adressen gevonden maar het antwoord bevatte geen berichten ({text[:80]!r})")
+        text, seen = ask(prompt + "\nAntwoord uitsluitend met de JSON, zonder toelichting, en gebruik alleen berichten uit je zoekresultaten.",
+                         model=model, system=DISCOVERY_SYSTEM)
     norm = lambda u: u.split("#")[0].rstrip("/")  # noqa: E731
     seen_norm = {norm(u) for u in seen}
     items: list[Item] = []

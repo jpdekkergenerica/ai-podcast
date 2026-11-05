@@ -200,3 +200,24 @@ def test_periode_telt_op_de_minuut_als_het_tijdstip_bekend_is() -> None:
     items = discover.discover_topic("Politiek", since, 8, "m", ask=ask)
     assert [i.title for i in items] == ["Net na de grens", "Alleen datum grensdag"]
     assert "2026-11-04 om 07:00" in ask.calls[0]["prompt"]
+
+
+def test_vastgelopen_zoekopdracht_wordt_opnieuw_geprobeerd() -> None:
+    """Zoekresultaten gevonden maar een lege lijst terug (het model liep vast op zijn eigen code): nog een keer proberen."""
+    answers = iter([('Results are strings-in-dict; fix printing.{"items": []}', {"https://nos.nl/a"}),
+                    (json.dumps({"items": [row("Echt nieuws", "https://nos.nl/a", iso(0.2))]}), {"https://nos.nl/a"})])
+    calls = []
+    def ask(prompt, **kw):
+        calls.append(prompt)
+        return next(answers)
+    items = discover.discover_topic("Politiek", NOW - DAY, 5, "m", ask=ask)
+    assert [i.title for i in items] == ["Echt nieuws"] and len(calls) == 2
+    assert "Antwoord uitsluitend met de JSON, zonder toelichting" in calls[1]
+
+
+def test_geen_zoekresultaten_en_geen_berichten_is_echt_geen_nieuws_zonder_nieuwe_poging() -> None:
+    calls = []
+    def ask(prompt, **kw):
+        calls.append(prompt)
+        return '{"items": []}', set()
+    assert discover.discover_topic("X", NOW - DAY, 5, "m", ask=ask) == [] and len(calls) == 1

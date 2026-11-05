@@ -15,7 +15,7 @@ from .db import get_db
 from .defaults import DEFAULT_DURATION, DEFAULT_MODELS, DEFAULT_RELEVANCE, DEFAULT_VOICE, MAX_PODCASTS_PER_USER
 from .limits import FieldErrors, clean_sources, clean_topics, validate_common, validate_schedule
 from .models import Device, Job, Show, Source, Topic, User, new_feed_token
-from .schedule import merged
+from .schedule import due_publication, merged, previous_publication
 from .schemas import (
     CoverIn,
     DeviceIn,
@@ -84,6 +84,13 @@ def _local_today(show: Show):
     return datetime.now(ZoneInfo(merged(show.schedule)["timezone"])).date()
 
 
+def _initial_scheduled_for(schedule: dict, now: datetime) -> str:
+    """De eerste aflevering geldt voor het vorige planningsmoment (bijv. gisteren 07:00). Zo blijft het eerstvolgende moment
+    (vandaag 07:00) gewoon bestaan. Staat dat moment al klaar om te starten, dan telt de eerste aflevering ervoor."""
+    previous = previous_publication(schedule, now).date()
+    return (due_publication(schedule, previous, now) or previous).isoformat()
+
+
 def _fresh(db: Session, user: User, podcast_id: str) -> Show:
     db.expire_all()
     return _load(db, user, podcast_id)
@@ -136,7 +143,7 @@ def create_podcast(body: PodcastCreate, user: Annotated[User, Depends(current_us
     _set_topics(show, topics)
     _set_sources(show, urls)
     # De eerste aflevering start direct; de planning begint daarna. scheduled_for voorkomt een tweede run op dezelfde dag.
-    job = Job(show_id=show.id, status="queued", trigger="initial", scheduled_for=_local_today(show).isoformat())
+    job = Job(show_id=show.id, status="queued", trigger="initial", scheduled_for=_initial_scheduled_for(schedule, datetime.now(timezone.utc)))
     db.add(job)
     db.commit()
     _refresh_feed(show.id)

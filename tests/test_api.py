@@ -315,6 +315,23 @@ def test_privefeed_bevat_het_omslag() -> None:
     assert "<itunes:image" in body and "cover-" in body and "token=" in body.split("<itunes:image", 1)[1].split(">", 1)[0]
 
 
+def test_volgende_aflevering_na_de_eerste_is_vandaag_om_het_geplande_tijdstip() -> None:
+    """Aangemaakt donderdag 02:57 met 'dagelijks 07:00': de eerste aflevering telt voor woensdag 07:00, de volgende is donderdag 07:00."""
+    from zoneinfo import ZoneInfo
+    from api.routes import _initial_scheduled_for
+    from api.schedule import next_publication
+    nl = lambda d, h, m: datetime(2026, 11, d, h, m, tzinfo=ZoneInfo("Europe/Amsterdam"))
+    daily = {"days": [0, 1, 2, 3, 4, 5, 6], "time": "07:00", "timezone": "Europe/Amsterdam"}
+    now = nl(5, 2, 57)
+    last = _initial_scheduled_for(daily, now)
+    assert last == "2026-11-04"
+    assert next_publication(daily, date.fromisoformat(last), now).isoformat() == "2026-11-05T07:00:00+01:00"
+    # vlak vóór 07:00 (de voorbereiding is al begonnen): dan telt de eerste aflevering voor vandaag, geen dubbele run
+    assert _initial_scheduled_for(daily, nl(5, 6, 30)) == "2026-11-05"
+    # na 07:00: de eerste aflevering telt voor vandaag, de volgende is morgen
+    assert _initial_scheduled_for(daily, nl(5, 14, 0)) == "2026-11-05"
+
+
 def test_aflevering_heeft_een_afspeelbare_audio_url() -> None:
     """De native app speelt een aflevering rechtstreeks af; de lijst en het detail geven daarvoor een audio_url met token."""
     from api.models import Episode
