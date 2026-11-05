@@ -147,9 +147,11 @@ def create_podcast(body: PodcastCreate, user: Annotated[User, Depends(current_us
     db.add(job)
     db.commit()
     _refresh_feed(show.id)
+    # Nooit synchroniseren in het HTTP-verzoek: LLM+TTS duurt te lang (app-timeouts, vastgelopen "running"-jobs).
     if os.environ.get("WORKER_INLINE", "0") == "1":
+        import threading
         from worker.run import process_job
-        process_job(job.id)
+        threading.Thread(target=process_job, args=(job.id,), daemon=True, name=f"job-{job.id[:8]}").start()
     return podcast_out(_fresh(db, user, show.id))
 
 

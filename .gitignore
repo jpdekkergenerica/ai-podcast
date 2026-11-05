@@ -9,3 +9,5 @@ data/
 ios/*.xcodeproj
 ios/*.xcworkspace
 ios/DerivedData/
+ios/.derivedData/
+ios/build/

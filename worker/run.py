@@ -149,10 +149,34 @@ def process_job(job_id: str, now: datetime | None = None) -> None:
         db.close()
 
 
+def recover_stuck_jobs(now: datetime | None = None, stale_after_minutes: int = 45) -> int:
+    """Zet jobs die te lang op 'running' staan terug op 'queued' (bijv. na een crash of timeout)."""
+    init_db()
+    now = now or datetime.now(timezone.utc)
+    cutoff = now - timedelta(minutes=stale_after_minutes)
+    db = SessionLocal()
+    try:
+        stuck = (
+            db.query(Job)
+            .filter(Job.status == "running")
+            .filter((Job.started_at.is_(None)) | (Job.started_at < cutoff))
+            .all()
+        )
+        for job in stuck:
+            job.status = "queued"
+            job.error = (job.error or "") + ("\n" if job.error else "") + "Opnieuw gepland na vastgelopen run."
+            job.run_after = None
+        db.commit()
+        return len(stuck)
+    finally:
+        db.close()
+
+
 def process_next(limit: int = 1, now: datetime | None = None) -> int:
     """Pakt de oudste klaarstaande jobs (niet voor hun run_after). Geeft het aantal verwerkte jobs terug."""
     init_db()
     now = now or datetime.now(timezone.utc)
+    recover_stuck_jobs(now)
     db = SessionLocal()
     try:
         jobs = db.query(Job).filter(Job.status == "queued").order_by(Job.created_at.asc()).all()

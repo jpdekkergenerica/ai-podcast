@@ -1,45 +1,68 @@
 import SwiftUI
 import AuthenticationServices
 
-/// Scherm 1 · Aanmelden: korte uitleg en Doorgaan met Apple.
+/// Scherm 1 · Aanmelden: video-achtergrond, korte uitleg en Doorgaan met Apple.
 struct StartView: View {
     @Environment(Session.self) private var session
     @State private var busy = false
     @State private var error: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(spacing: 10) {
-                Image(systemName: "mic.fill").font(.title3).foregroundStyle(.white)
-                    .frame(width: 40, height: 40).background(Theme.brandFill, in: RoundedRectangle(cornerRadius: 10))
-                Text("yourownpod").font(.title3.weight(.semibold))
-            }
-            Spacer()
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Jouw onderwerpen, jouw podcast").font(.largeTitle.weight(.bold)).fixedSize(horizontal: false, vertical: true)
+        ZStack {
+            LoopingVideoBackground(resourceName: "yourownpod-bg", resourceExtension: "mp4")
+                .ignoresSafeArea()
+
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.50),
+                    .black.opacity(0.18),
+                    .black.opacity(0.05),
+                    .black.opacity(0.20),
+                    .black.opacity(0.78),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 10) {
+                    Image(systemName: "mic.fill").font(.title3).foregroundStyle(.white)
+                        .frame(width: 40, height: 40).background(Theme.brandFill, in: RoundedRectangle(cornerRadius: 10))
+                    Text("yourownpod").font(.title3.weight(.semibold)).foregroundStyle(.white)
+                }
+
+                Spacer(minLength: 24)
+
+                Text("Jouw onderwerpen, jouw podcast")
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Vrije band voor de muziekbalk in de video.
+                Spacer().frame(height: 200)
+
                 Text("Kies waar je nieuws over wilt horen. Wij maken en publiceren de afleveringen in je eigen feed. Luisteren kan in deze app of in Apple Podcasts.")
-                    .foregroundStyle(Theme.secondary)
-                if let error { Text(error).font(.subheadline).foregroundStyle(Theme.negative).padding(.top, 4) }
-            }
-            Spacer()
-            VStack(spacing: 12) {
+                    .foregroundStyle(.white.opacity(0.9))
+                if let error {
+                    Text(error).font(.subheadline).foregroundStyle(Color(red: 1, green: 0.55, blue: 0.5)).padding(.top, 8)
+                }
+
+                Spacer(minLength: 24)
+
                 SignInWithAppleButton(.continue) { request in
                     request.requestedScopes = [.fullName, .email]
                 } onCompletion: { result in
                     handle(result)
                 }
-                .signInWithAppleButtonStyle(.black)
+                .signInWithAppleButtonStyle(.white)
                 .frame(height: 52)
                 .disabled(busy)
-                if session.devAuth {
-                    Button("Ontwikkel-login") { Task { await devLogin() } }
-                        .buttonStyle(SecondaryButtonStyle()).disabled(busy)
-                }
+                if busy { ProgressView().tint(.white).frame(maxWidth: .infinity).padding(.top, 12) }
             }
-            if busy { ProgressView().frame(maxWidth: .infinity) }
+            .padding(24)
         }
-        .padding(24)
-        .background(Theme.background)
     }
 
     private func handle(_ result: Result<ASAuthorization, Error>) {
@@ -59,11 +82,5 @@ struct StartView: View {
                 busy = false
             }
         }
-    }
-
-    private func devLogin() async {
-        busy = true; error = nil
-        do { try await session.signInDev() } catch { self.error = error.localizedDescription }
-        busy = false
     }
 }

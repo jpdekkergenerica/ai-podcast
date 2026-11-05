@@ -12,6 +12,9 @@ targets:
     platform: iOS
     sources:
       - PersonalPodcast
+    resources:
+      - path: PersonalPodcast/Resources/yourownpod-bg.mp4
+        buildPhase: resources
     settings:
       base:
         INFOPLIST_FILE: PersonalPodcast/Info.plist
