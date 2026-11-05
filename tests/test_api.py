@@ -315,6 +315,21 @@ def test_privefeed_bevat_het_omslag() -> None:
     assert "<itunes:image" in body and "cover-" in body and "token=" in body.split("<itunes:image", 1)[1].split(">", 1)[0]
 
 
+def test_aflevering_heeft_een_afspeelbare_audio_url() -> None:
+    """De native app speelt een aflevering rechtstreeks af; de lijst en het detail geven daarvoor een audio_url met token."""
+    from api.models import Episode
+    h = login("audio-url")
+    p = make(h)
+    db = SessionLocal()
+    db.add(Episode(show_id=p["id"], guid="episode-x", date="2026-11-05", published="2026-11-05T07:00:00+01:00", title="T",
+                   summary="s", blurb="b", file="2026-11-05-0700.mp3", size=1, duration=60))
+    db.commit(); db.close()
+    eps = client.get(f"/me/podcasts/{p['id']}/episodes", headers=h).json()
+    assert eps[0]["audio_url"].endswith("/2026-11-05-0700.mp3?token=" + p["feed_url"].split("token=")[1])
+    one = client.get(f"/me/podcasts/{p['id']}/episodes/episode-x", headers=h).json()
+    assert one["audio_url"] == eps[0]["audio_url"]
+
+
 def test_feed_en_media_beantwoorden_head_en_range() -> None:
     """Apple Podcasts controleert een aflevering met HEAD (en haalt hem op met Range); een 405 geeft 'tijdelijk niet beschikbaar'."""
     h = login("head-check")

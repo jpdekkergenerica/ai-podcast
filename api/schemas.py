@@ -88,6 +88,7 @@ class EpisodeSummary(BaseModel):
     title: str
     duration: int
     status: str = "published"
+    audio_url: str = ""  # direct afspeelbaar in de app (met het feed-token van de podcast)
 
 
 class PodcastOut(BaseModel):

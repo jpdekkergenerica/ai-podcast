@@ -1,26 +1,17 @@
 import SwiftUI
-import UIKit
 
 @main
 struct PersonalPodcastApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @State private var session = Session()
+    @State private var player = AudioPlayer()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environment(session)
+                .environment(player)
+                .tint(Theme.brand)
         }
-    }
-}
-
-/// Ontvangt het APNs-token van iOS en geeft het door aan de brug naar de webpagina.
-final class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication,
-                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        PushBridge.shared.didRegister(token: deviceToken.map { String(format: "%02x", $0) }.joined())
-    }
-
-    func application(_ application: UIApplication,
-                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        PushBridge.shared.didFail(error.localizedDescription)
     }
 }

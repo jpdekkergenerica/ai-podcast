@@ -262,7 +262,8 @@ def delete_cover(podcast_id: str, user: Annotated[User, Depends(current_user)], 
 
 @router.get("/podcasts/{podcast_id}/episodes", response_model=list[EpisodeSummary])
 def list_episodes(podcast_id: str, user: Annotated[User, Depends(current_user)], db: Session = Depends(get_db)) -> list[EpisodeSummary]:
-    return [episode_summary(e) for e in _load(db, user, podcast_id).episodes]
+    show = _load(db, user, podcast_id)
+    return [episode_summary(e, show) for e in show.episodes]
 
 
 @router.get("/podcasts/{podcast_id}/episodes/{guid}", response_model=EpisodeOut)
@@ -271,7 +272,7 @@ def get_episode(podcast_id: str, guid: str, user: Annotated[User, Depends(curren
     ep = next((e for e in show.episodes if e.guid == guid), None)
     if ep is None:
         raise HTTPException(404, "Aflevering niet gevonden")
-    return episode_out(ep)
+    return episode_out(ep, show)
 
 
 # ---------- bronnen en stemmen ----------

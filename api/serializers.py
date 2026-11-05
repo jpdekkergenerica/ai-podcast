@@ -65,8 +65,9 @@ def status_for(show: Show, now: datetime) -> StatusOut:
     return StatusOut(code="scheduled", label="Gepland", detail="De eerste aflevering wordt gemaakt.")
 
 
-def episode_summary(ep: Episode) -> EpisodeSummary:
-    return EpisodeSummary(guid=ep.guid, date=ep.date, published=ep.published, title=ep.title, duration=ep.duration)
+def episode_summary(ep: Episode, show: Show | None = None) -> EpisodeSummary:
+    audio = media_url_for(show, ep.file) if show is not None and ep.file else ""
+    return EpisodeSummary(guid=ep.guid, date=ep.date, published=ep.published, title=ep.title, duration=ep.duration, audio_url=audio)
 
 
 def cover_url_for(show: Show) -> str:
@@ -96,16 +97,16 @@ def podcast_out(show: Show, now: datetime | None = None) -> PodcastOut:
         status=status_for(show, now),
         paused=not show.active,
         feed_url=feed_url_for(show),
-        latest_episode=episode_summary(latest_ep) if latest_ep else None,
+        latest_episode=episode_summary(latest_ep, show) if latest_ep else None,
         episode_count=len(show.episodes),
     )
 
 
-def episode_out(ep: Episode) -> EpisodeOut:
+def episode_out(ep: Episode, show: Show | None = None) -> EpisodeOut:
     groups: dict[str, list[dict[str, str]]] = {}
     for s in ep.sources or []:
         groups.setdefault(s.get("topic", ""), []).append(
             {"title": s.get("title", ""), "link": s.get("link", ""), "source": s.get("source", "")})
-    base = episode_summary(ep)
+    base = episode_summary(ep, show)
     return EpisodeOut(**base.model_dump(), summary=ep.blurb or ep.summary, period_start=ep.period_start or "",
                       period_end=ep.period_end or "", sources=[SourceGroup(topic=t, items=i) for t, i in groups.items()])
