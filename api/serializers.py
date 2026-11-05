@@ -44,7 +44,7 @@ def failure_text(job: Job) -> str:
 
 def search_excerpt(job: Job, limit: int = 900) -> str:
     """Alleen de zoekregels uit het logboek van een overgeslagen aflevering ('waarom vonden we niets?'), geen foutdetails."""
-    keep = [ln for ln in (job.log or "").splitlines() if ln.startswith(("[zoeken]", "Waarschuwing")) or " berichten, " in ln]
+    keep = [ln for ln in (job.log or "").splitlines() if ln.startswith(("[zoeken]", "Waarschuwing", "Geen relevant")) or " berichten, " in ln]
     text = "\n".join(keep)[-limit:]
     return f"\n\nZoekverslag:\n{text}" if text else ""
 
