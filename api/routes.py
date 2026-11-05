@@ -309,6 +309,8 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
         "anthropic_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
         "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY")),
         "push_configured": push.configured(),
+        "apple_client_id": os.environ.get("APPLE_CLIENT_ID", ""),  # bundle-ID waarvoor Sign in with Apple-tokens gelden (geen geheim)
+        "apns_bundle_id": os.environ.get("APNS_BUNDLE_ID", ""),
     }
     try:
         with SessionLocal() as s:
