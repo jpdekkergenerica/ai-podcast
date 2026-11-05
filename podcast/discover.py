@@ -80,21 +80,33 @@ Is er in deze periode geen nieuws, antwoord dan {{"items": []}}."""
     norm = lambda u: u.split("#")[0].rstrip("/")  # noqa: E731
     seen_norm = {norm(u) for u in seen}
     items: list[Item] = []
-    for row in _json_items(text)[:limit * 2]:
+    rows = _json_items(text)[:limit * 2]
+    dropped = {"geen adres": 0, "adres niet in zoekresultaten": 0, "voor de periode": 0}
+    for row in rows:
         url, title = str(row.get("url", "")).strip(), re.sub(r"\s+", " ", str(row.get("title", ""))).strip()
         if not title or not url.startswith("http"):
+            dropped["geen adres"] += 1
             continue
         if norm(url) not in seen_norm:
             print(f"Waarschuwing: bericht overgeslagen, adres stond niet in de zoekresultaten ({url})")
+            dropped["adres niet in zoekresultaten"] += 1
             continue
         published, exact = _published_at(row.get("published", ""))
         if published:
             if exact and published < since:
+                dropped["voor de periode"] += 1
                 continue  # vóór het begin van de periode (op de minuut)
             if not exact and datetime.fromtimestamp(published, tz=NL).date() < start.date():
+                dropped["voor de periode"] += 1
                 continue  # alleen een datum: de dag van de grens zelf doet nog mee
         items.append(Item(topic_text, title, str(row.get("summary", "")).strip(), url,
                           str(row.get("source", "")).strip() or (urlparse(url).hostname or url), published=published))
+    if rows:
+        print(f"[zoeken] '{topic_text[:60]}' sinds {since_text}: model gaf {len(rows)} berichten, {len(items)} bruikbaar, "
+              f"{len(seen)} adressen in zoekresultaten" + ("; afgevallen: " + ", ".join(f"{k} {v}" for k, v in dropped.items() if v) if len(items) < len(rows) else ""))
+    else:  # niets bruikbaars in het antwoord: laat zien hoe het antwoord begon en eindigde (afgekapt? geen JSON? leeg?)
+        print(f"[zoeken] '{topic_text[:60]}' sinds {since_text}: GEEN berichten uit het antwoord ({len(seen)} adressen in zoekresultaten, "
+              f"antwoord {len(text)} tekens). Begin: {text[:150]!r} Einde: {text[-150:]!r}")
     return items[:limit]
 
 

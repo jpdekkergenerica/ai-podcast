@@ -42,6 +42,13 @@ def failure_text(job: Job) -> str:
     return f"{reason} Je eerdere afleveringen blijven beschikbaar. Bij de volgende geplande aflevering proberen we het opnieuw."
 
 
+def search_excerpt(job: Job, limit: int = 900) -> str:
+    """Alleen de zoekregels uit het logboek van een overgeslagen aflevering ('waarom vonden we niets?'), geen foutdetails."""
+    keep = [ln for ln in (job.log or "").splitlines() if ln.startswith(("[zoeken]", "Waarschuwing")) or " berichten, " in ln]
+    text = "\n".join(keep)[-limit:]
+    return f"\n\nZoekverslag:\n{text}" if text else ""
+
+
 def last_scheduled_for(jobs: list[Job]) -> date | None:
     days = [j.scheduled_for for j in jobs if j.scheduled_for]
     return date.fromisoformat(max(days)) if days else None
@@ -59,7 +66,7 @@ def status_for(show: Show, now: datetime) -> StatusOut:
     if latest and latest.status == "failed":
         return StatusOut(code="failed", label="Mislukt", detail=failure_text(latest))
     if latest and latest.status == "skipped":
-        return StatusOut(code="skipped", label="Overgeslagen", detail=latest.error or "Er was geen nieuw nieuws voor deze aflevering.")
+        return StatusOut(code="skipped", label="Overgeslagen", detail=(latest.error or "Er was geen nieuw nieuws voor deze aflevering.") + search_excerpt(latest))
     if show.episodes:
         return StatusOut(code="published", label="Gepubliceerd", detail="De laatste aflevering staat klaar in je feed.")
     return StatusOut(code="scheduled", label="Gepland", detail="De eerste aflevering wordt gemaakt.")
