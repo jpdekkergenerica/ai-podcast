@@ -321,7 +321,7 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
     else:
         try:
             c = storage._client()
-            c.head_bucket(Bucket=storage.SPACES_BUCKET)
+            c.list_objects_v2(Bucket=storage.SPACES_BUCKET, MaxKeys=1)  # geeft een duidelijke foutcode (NoSuchBucket, InvalidAccessKeyId, …)
             key = "_diagnostics/ping.txt"
             c.put_object(Bucket=storage.SPACES_BUCKET, Key=key, Body=b"ok")
             c.delete_object(Bucket=storage.SPACES_BUCKET, Key=key)
@@ -329,8 +329,10 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
         except KeyError as e:
             out["storage"] = f"fout: variabele {e} ontbreekt"
         except Exception as e:  # noqa: BLE001
-            code = getattr(e, "response", {}).get("Error", {}).get("Code", "")
-            out["storage"] = f"fout: {type(e).__name__} {code}".strip()
+            err = getattr(e, "response", {}).get("Error", {})
+            out["storage"] = f"fout: {type(e).__name__} {err.get('Code', '')} {err.get('Message', '')}".strip()
+            out["storage_endpoint"] = os.environ.get("SPACES_ENDPOINT") or f"https://{os.environ.get('SPACES_REGION', 'ams3')}.digitaloceanspaces.com"
+            out["storage_bucket"] = storage.SPACES_BUCKET
     return out
 
 
