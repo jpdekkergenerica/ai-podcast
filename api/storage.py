@@ -22,13 +22,20 @@ def remote_enabled() -> bool:
 @lru_cache(maxsize=1)
 def _client():
     import boto3
+    from botocore.config import Config
     region = os.environ.get("SPACES_REGION", "ams3")
+    try:  # boto3 >= 1.36 stuurt checksum-headers die Spaces afwijst (InvalidArgument); alleen nog op verzoek
+        cfg = Config(request_checksum_calculation="when_required", response_checksum_validation="when_required",
+                     s3={"addressing_style": "virtual"})
+    except TypeError:  # oudere botocore kent die opties niet en doet dit niet
+        cfg = Config(s3={"addressing_style": "virtual"})
     return boto3.client(
         "s3",
         region_name=region,
         endpoint_url=os.environ.get("SPACES_ENDPOINT", f"https://{region}.digitaloceanspaces.com"),
-        aws_access_key_id=os.environ["SPACES_KEY"],
-        aws_secret_access_key=os.environ["SPACES_SECRET"],
+        aws_access_key_id=os.environ["SPACES_KEY"].strip(),
+        aws_secret_access_key=os.environ["SPACES_SECRET"].strip(),
+        config=cfg,
     )
 
 

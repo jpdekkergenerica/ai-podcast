@@ -333,6 +333,9 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
             out["storage"] = f"fout: {type(e).__name__} {err.get('Code', '')} {err.get('Message', '')}".strip()
             out["storage_endpoint"] = os.environ.get("SPACES_ENDPOINT") or f"https://{os.environ.get('SPACES_REGION', 'ams3')}.digitaloceanspaces.com"
             out["storage_bucket"] = storage.SPACES_BUCKET
+            k, sec = os.environ.get("SPACES_KEY", ""), os.environ.get("SPACES_SECRET", "")
+            out["spaces_key"] = f"{len(k)} tekens" + (", begint met DO" if k.startswith("DO") else ", begint NIET met DO") + (", bevat spaties/regeleinde" if k != k.strip() else "")
+            out["spaces_secret"] = f"{len(sec)} tekens" + (", bevat spaties/regeleinde" if sec != sec.strip() else "")
     return out
 
 
