@@ -368,7 +368,7 @@ def test_stemmen_zoeken_en_tijdelijke_storing() -> None:
     voices._cache.update(at=0.0, voices=[])
     key = os.environ.pop("ELEVENLABS_API_KEY", None)
     res = client.get("/me/voices", headers=h)
-    assert res.status_code == 503 and "tijdelijk" in res.json()["detail"]
+    assert res.status_code == 424 and "tijdelijk" in res.json()["detail"]
 
     transport = httpx.MockTransport(lambda req: httpx.Response(200, json={"voices": [
         {"voice_id": "v-b", "name": "Daan", "preview_url": "https://x/daan.mp3", "labels": {"gender": "male", "accent": "dutch"}},

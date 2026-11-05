@@ -95,52 +95,6 @@ def auth_dev(body: DevLoginRequest, db: Session = Depends(get_db)) -> TokenRespo
     )
 
 
-# ---------- show ----------
-
-# ---------- auth ----------
-
-@app.post("/auth/apple", response_model=TokenResponse)
-def auth_apple(body: AppleLoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
-    claims = verify_apple_identity_token(body.identity_token)
-    sub = claims.get("sub")
-    if not sub:
-        raise HTTPException(400, "Apple-token mist sub")
-    email = body.email or claims.get("email")
-    user = db.query(User).filter(User.apple_sub == sub).one_or_none()
-    if user is None:
-        user = User(apple_sub=sub, email=email)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    elif email and not user.email:
-        user.email = email
-        db.commit()
-    return TokenResponse(
-        access_token=issue_access_token(user),
-        user_id=user.id,
-        has_show=_podcast_count(db, user) > 0,
-        podcast_count=_podcast_count(db, user),
-    )
-
-
-@app.post("/auth/dev", response_model=TokenResponse)
-def auth_dev(body: DevLoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
-    if not AUTH_DEV_MODE:
-        raise HTTPException(403, "Dev-login staat uit")
-    user = db.query(User).filter(User.apple_sub == body.apple_sub).one_or_none()
-    if user is None:
-        user = User(apple_sub=body.apple_sub, email=body.email)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return TokenResponse(
-        access_token=issue_access_token(user),
-        user_id=user.id,
-        has_show=_podcast_count(db, user) > 0,
-        podcast_count=_podcast_count(db, user),
-    )
-
-
 # ---------- account ----------
 
 @app.delete("/me/account", response_model=MessageOut)
@@ -157,14 +111,22 @@ app.include_router(router)
 
 # ---------- private feed + media ----------
 
+def _try_refresh_feed(show_id: str) -> None:
+    """Feed/omslag maken als die ontbreekt. Mislukt dat (bijv. opslag tijdelijk onbereikbaar), dan een nette 404 in plaats van een 500."""
+    from worker.run import refresh_feed
+    try:
+        refresh_feed(show_id)
+    except Exception as e:  # noqa: BLE001
+        print(f"refresh_feed({show_id}) mislukt: {type(e).__name__}: {e}")
+
+
 @app.get("/feeds/{show_id}.xml")
 def private_feed(show_id: str, token: str = Query(...), db: Session = Depends(get_db)):
     show = _show_by_token(db, show_id, token)
     feed_file = site_dir(show.id) / "feed.xml"
     if not ensure(feed_file, fresh=True):
         # lege feed genereren zodat Apple kan abonneren vóór de eerste aflevering
-        from worker.run import refresh_feed
-        refresh_feed(show.id)
+        _try_refresh_feed(show.id)
     if not feed_file.exists():
         raise HTTPException(404, "Feed nog niet beschikbaar")
     return FileResponse(feed_file, media_type="application/rss+xml")
@@ -176,8 +138,7 @@ def private_media(show_id: str, filename: str, token: str = Query(...), db: Sess
         raise HTTPException(400, "Ongeldige bestandsnaam")
     _show_by_token(db, show_id, token)
     if filename == "cover.jpg" and not ensure(site_dir(show_id) / "cover.jpg", fresh=True):
-        from worker.run import refresh_feed  # omslag ontbreekt nog (nooit een feed geschreven): nu maken
-        refresh_feed(show_id)
+        _try_refresh_feed(show_id)  # omslag ontbreekt nog (nooit een feed geschreven): nu maken
     path = audio_path(show_id, filename)
     if not ensure(path):
         # chapters/transcripts onder site/

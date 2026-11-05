@@ -288,9 +288,50 @@ def list_voices(user: Annotated[User, Depends(current_user)], q: str = "") -> li
     try:
         found = voices.list_voices()
     except voices.VoicesUnavailable as e:
-        raise HTTPException(503, str(e)) from e
+        raise HTTPException(424, str(e)) from e  # geen 5xx: DO toont dan een HTML-foutpagina in plaats van deze melding
     needle = q.strip().lower()
     return [v for v in found if not needle or needle in v["name"].lower() or needle in v["description"].lower()]
+
+
+# ---------- diagnose ----------
+
+@router.get("/diagnostics")
+def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
+    """Wat werkt er op deze server? Alleen ja/nee en foutcodes, nooit sleutels. Voor het testen van een nieuwe omgeving."""
+    _ = user
+    from sqlalchemy import text
+    from . import storage
+    from .auth import AUTH_DEV_MODE
+    from .db import SessionLocal
+    out: dict = {
+        "dev_auth": AUTH_DEV_MODE,
+        "public_base_url": os.environ.get("PUBLIC_BASE_URL", ""),
+        "anthropic_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY")),
+        "push_configured": push.configured(),
+    }
+    try:
+        with SessionLocal() as s:
+            s.execute(text("select 1"))
+        out["database"] = "ok"
+    except Exception as e:  # noqa: BLE001
+        out["database"] = f"fout: {type(e).__name__}"
+    if not storage.remote_enabled():
+        out["storage"] = "lokaal (geen Spaces ingesteld; bestanden verdwijnen bij een nieuwe deploy)"
+    else:
+        try:
+            c = storage._client()
+            c.head_bucket(Bucket=storage.SPACES_BUCKET)
+            key = "_diagnostics/ping.txt"
+            c.put_object(Bucket=storage.SPACES_BUCKET, Key=key, Body=b"ok")
+            c.delete_object(Bucket=storage.SPACES_BUCKET, Key=key)
+            out["storage"] = f"ok (Space {storage.SPACES_BUCKET}: lezen en schrijven gelukt)"
+        except KeyError as e:
+            out["storage"] = f"fout: variabele {e} ontbreekt"
+        except Exception as e:  # noqa: BLE001
+            code = getattr(e, "response", {}).get("Error", {}).get("Code", "")
+            out["storage"] = f"fout: {type(e).__name__} {code}".strip()
+    return out
 
 
 # ---------- account en meldingen ----------
