@@ -462,7 +462,7 @@ def test_meldingen_voorkeuren_toestellen_en_versturen() -> None:
     assert client.post("/me/devices", headers=h, json={"token": token}).json()["push_registered"] is True  # idempotent
     assert client.post("/me/devices", headers=h, json={"token": "kort"}).status_code == 422
 
-    os.environ.update(APNS_KEY_ID="KEY123", APNS_TEAM_ID="TEAM123456", APNS_BUNDLE_ID="nl.generica.personalpodcast", APNS_AUTH_KEY=_apns_key())
+    os.environ.update(APNS_KEY_ID="KEY123", APNS_TEAM_ID="TEAM123456", APNS_BUNDLE_ID="nl.teamblender.yourownpod", APNS_AUTH_KEY=_apns_key())
     calls: list[dict] = []
     status = {"code": 200}
 
@@ -476,7 +476,7 @@ def test_meldingen_voorkeuren_toestellen_en_versturen() -> None:
         from api.models import User
         user = db.query(User).filter(User.apple_sub == "meldingen").one()
         assert push.notify(db, user, "new_episode", "Nieuw", "Titel", client=fake) == 1
-        assert calls[0]["url"].endswith(f"/3/device/{token}") and calls[0]["topic"] == "nl.generica.personalpodcast" and calls[0]["auth"].startswith("bearer ")
+        assert calls[0]["url"].endswith(f"/3/device/{token}") and calls[0]["topic"] == "nl.teamblender.yourownpod" and calls[0]["auth"].startswith("bearer ")
         # beide typen zijn afzonderlijk uit te zetten
         client.patch("/me/notifications", headers=h, json={"notify_new": False})
         db.refresh(user)

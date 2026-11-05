@@ -1,6 +1,6 @@
 name: PersonalPodcast
 options:
-  bundleIdPrefix: nl.generica
+  bundleIdPrefix: nl.teamblender
   deploymentTarget:
     iOS: "17.0"
 settings:
@@ -15,7 +15,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: PersonalPodcast/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: nl.generica.yourownpod
+        PRODUCT_BUNDLE_IDENTIFIER: nl.teamblender.yourownpod
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: false

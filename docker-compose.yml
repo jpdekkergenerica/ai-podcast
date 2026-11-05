@@ -44,7 +44,7 @@ services:
       APNS_KEY_ID: ${APNS_KEY_ID:-}
       APNS_TEAM_ID: ${APNS_TEAM_ID:-}
       APNS_AUTH_KEY: ${APNS_AUTH_KEY:-}
-      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-nl.generica.yourownpod}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-nl.teamblender.yourownpod}
       APNS_USE_SANDBOX: ${APNS_USE_SANDBOX:-1}
     volumes:
       - storage:/data/storage
