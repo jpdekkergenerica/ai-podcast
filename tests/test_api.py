@@ -307,6 +307,14 @@ def test_worker_zet_alleen_aan_de_beurt_zijnde_podcasts_klaar() -> None:
     assert [j.trigger for j in jobs_of(pb["id"])] == ["initial"] and [j.trigger for j in jobs_of(pc["id"])] == ["initial"]
 
 
+def test_privefeed_bevat_het_omslag() -> None:
+    """feedgen laat itunes:image weg bij een URL met ?token=; zonder omslag in de feed accepteert Apple Podcasts hem niet."""
+    h = login("omslag-in-feed")
+    p = make(h)
+    body = client.get(feed_path(p)).text
+    assert "<itunes:image" in body and "cover-" in body and "token=" in body.split("<itunes:image", 1)[1].split(">", 1)[0]
+
+
 # ---------- eigen bronnen ----------
 
 def test_eigen_bronnen_optioneel_met_naam_en_foutmelding() -> None:

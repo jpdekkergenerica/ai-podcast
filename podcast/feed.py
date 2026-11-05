@@ -136,20 +136,30 @@ def write_site(cfg: dict, site_dir: Path, store: ShowStore | None = None,
         fe.enclosure(audio_url_for(ep), str(ep["size"]), "audio/mpeg")
         fe.podcast.itunes_duration(_hms(ep["duration"]))
         fe.content(shownotes_html(ep), type="CDATA")
-    _write_feed(fg, episodes, site, site_dir, query=q)
+    _write_feed(fg, episodes, site, site_dir, query=q, cover_url=f"{site}/{cover}{q}")
     print(f"Feed geschreven: {feed_self} ({len(episodes)} afleveringen)")
 
 
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 
 
+ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+
+
 def _write_feed(fg: FeedGenerator, episodes: list[dict], site: str, site_dir: Path,
-                query: str = "") -> None:
+                query: str = "", cover_url: str = "") -> None:
     """Schrijft feed.xml met per aflevering podcast:chapters en podcast:transcript (feedgen kent die niet)."""
     old = etree.fromstring(fg.rss_str(pretty=True))
     root = etree.Element(old.tag, attrib=dict(old.attrib), nsmap={**old.nsmap, "podcast": PODCAST_NS})
     root.extend(list(old))
-    items = root.find("channel").findall("item")
+    channel = root.find("channel")
+    # feedgen laat het omslag stilzwijgend weg als de URL niet op .jpg/.png eindigt, zoals bij een privéfeed (…jpg?token=…)
+    if cover_url and channel.find(f"{{{ITUNES_NS}}}image") is None:
+        img = etree.Element(f"{{{ITUNES_NS}}}image")
+        img.set("href", cover_url)
+        owner = channel.find(f"{{{ITUNES_NS}}}owner")
+        (owner.addprevious(img) if owner is not None else channel.insert(0, img))
+    items = channel.findall("item")
     for item, ep in zip(items, episodes):
         stamp = ep["file"].removesuffix(".mp3")
         for folder, name, content, kind, tag in (
