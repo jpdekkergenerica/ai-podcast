@@ -311,6 +311,7 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
     from . import storage
     from .auth import AUTH_DEV_MODE
     from .db import SessionLocal
+    from .db import DB_DIALECT, DB_SCHEMA
     out: dict = {
         "dev_auth": AUTH_DEV_MODE,
         "public_base_url": os.environ.get("PUBLIC_BASE_URL", ""),
@@ -319,11 +320,18 @@ def diagnostics(user: Annotated[User, Depends(current_user)]) -> dict:
         "push_configured": push.configured(),
         "apple_client_id": os.environ.get("APPLE_CLIENT_ID", ""),  # bundle-ID waarvoor Sign in with Apple-tokens gelden (geen geheim)
         "apns_bundle_id": os.environ.get("APNS_BUNDLE_ID", ""),
+        "db": DB_DIALECT,
+        "db_schema": DB_SCHEMA if DB_DIALECT == "postgresql" else None,
     }
     try:
         with SessionLocal() as s:
             s.execute(text("select 1"))
-        out["database"] = "ok"
+            if DB_DIALECT == "postgresql":
+                n_users = s.execute(text("select count(*) from users")).scalar()
+                n_shows = s.execute(text("select count(*) from shows")).scalar()
+                out["database"] = f"ok (postgresql, {n_users} users, {n_shows} shows)"
+            else:
+                out["database"] = f"ok ({DB_DIALECT})"
     except Exception as e:  # noqa: BLE001
         out["database"] = f"fout: {type(e).__name__}"
     if not storage.remote_enabled():

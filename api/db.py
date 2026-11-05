@@ -4,24 +4,50 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./data/app.db")
+# Lege string telt als ontbrekend (DO kan DATABASE_URL="" zetten als ${db.DATABASE_URL} niet resolve't).
+_RAW_DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
+_AUTH_DEV_MODE = os.environ.get("AUTH_DEV_MODE", "0") == "1"
+_ALLOW_SQLITE = os.environ.get("ALLOW_SQLITE", "0") == "1"
+
+if not _RAW_DATABASE_URL:
+    if _AUTH_DEV_MODE or _ALLOW_SQLITE:
+        _RAW_DATABASE_URL = "sqlite:///./data/app.db"
+    else:
+        raise RuntimeError(
+            "DATABASE_URL ontbreekt. Zet hem in de omgeving (Postgres). "
+            "Lokaal: AUTH_DEV_MODE=1 of ALLOW_SQLITE=1 voor SQLite."
+        )
+
+DATABASE_URL = _RAW_DATABASE_URL
 # DigitalOcean (en Heroku-achtige hosts) geven postgresql:// of postgres://; SQLAlchemy heeft hier de psycopg3-driver nodig
 for _prefix in ("postgres://", "postgresql://"):
     if DATABASE_URL.startswith(_prefix):
         DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len(_prefix):]
+        break
 
-# SQLite heeft check_same_thread=False nodig voor FastAPI
+_IS_SQLITE = DATABASE_URL.startswith("sqlite")
+_IS_PG = DATABASE_URL.startswith("postgresql")
+
+# In productie geen stille SQLite: die data verdwijnt bij elke deploy en wijkt af van DATABASE_URL in .env.
+if _IS_SQLITE and not _AUTH_DEV_MODE and not _ALLOW_SQLITE:
+    raise RuntimeError(
+        "SQLite is niet toegestaan buiten AUTH_DEV_MODE. "
+        "Zet DATABASE_URL op je Postgres-connection string (zelfde als in .env / DO)."
+    )
+
 # PostgreSQL 15+ geeft gewone gebruikers geen schrijfrecht op schema public (o.a. DigitalOcean). We werken daarom in een eigen
 # schema; bestaat dat niet en kan het niet gemaakt worden, dan valt de zoekpad vanzelf terug op public.
 DB_SCHEMA = os.environ.get("DB_SCHEMA", "app")
-_IS_PG = DATABASE_URL.startswith("postgresql")
 _connect_args = (
-    {"check_same_thread": False} if DATABASE_URL.startswith("sqlite")
+    {"check_same_thread": False} if _IS_SQLITE
     else {"options": f"-csearch_path={DB_SCHEMA},public"} if _IS_PG
     else {}
 )
 engine = create_engine(DATABASE_URL, connect_args=_connect_args, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+
+# Voor /health en diagnostics (geen connection string, alleen dialect).
+DB_DIALECT = "sqlite" if _IS_SQLITE else ("postgresql" if _IS_PG else "other")
 
 
 class Base(DeclarativeBase):
@@ -38,7 +64,7 @@ def get_db() -> Generator[Session, None, None]:
 
 def init_db() -> None:
     from . import models  # noqa: F401
-    if DATABASE_URL.startswith("sqlite"):
+    if _IS_SQLITE:
         Path = __import__("pathlib").Path
         Path("data").mkdir(exist_ok=True)
     if _IS_PG:

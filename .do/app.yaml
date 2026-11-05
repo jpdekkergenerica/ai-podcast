@@ -6,21 +6,26 @@ region: ams
 
 # Geheimen staan op app-niveau (Settings > App-Level Environment Variables) en gelden voor api en worker.
 # Zet ze niet nog eens per component: een lege waarde daar overschrijft die van app-niveau.
+#
+# DATABASE_URL: plak hier dezelfde Postgres-URL als in .env (cluster yourownpod / defaultdb).
+# Niet via ${db.DATABASE_URL}: een lege interpolatie overschrijft het geheim en de API viel terug op SQLite.
 envs:
+  - { key: DATABASE_URL, scope: RUN_TIME, type: SECRET }
   - { key: API_JWT_SECRET, scope: RUN_TIME, type: SECRET }
   - { key: SPACES_KEY, scope: RUN_TIME, type: SECRET }
   - { key: SPACES_SECRET, scope: RUN_TIME, type: SECRET }
   - { key: ANTHROPIC_API_KEY, scope: RUN_TIME, type: SECRET }
   - { key: ELEVENLABS_API_KEY, scope: RUN_TIME, type: SECRET }
 
+# Cluster blijft gekoppeld voor netwerk/backups; de connection string komt uit DATABASE_URL hierboven.
 databases:
   - name: db
     engine: PG
     version: "16"
     production: true
-    cluster_name: yourownpod      # naam van het bestaande databasecluster in DO
+    cluster_name: yourownpod
     db_name: defaultdb
-    db_user: doadmin              # de dev-database geeft geen schrijfrecht op schema public; doadmin wel
+    db_user: doadmin
 
 services:
   - name: api
@@ -35,9 +40,8 @@ services:
     health_check:
       http_path: /health
     envs:
-      - { key: DATABASE_URL, scope: RUN_TIME, value: "${db.DATABASE_URL}" }
       - { key: AUTH_DEV_MODE, scope: RUN_TIME, value: "0" }
-      - { key: PUBLIC_BASE_URL, scope: RUN_TIME, value: "${APP_URL}" }  # vervang door je eigen domein als dat er is
+      - { key: PUBLIC_BASE_URL, scope: RUN_TIME, value: "${APP_URL}" }
       - { key: CORS_ORIGINS, scope: RUN_TIME, value: "*" }
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }
@@ -53,9 +57,8 @@ workers:
     dockerfile_path: Dockerfile.api
     run_command: python -m worker.run loop --sleep 5
     instance_size_slug: apps-s-1vcpu-2gb
-    instance_count: 1         # laat dit op 1 staan: de wachtrij is niet ontworpen voor meerdere workers
+    instance_count: 1
     envs:
-      - { key: DATABASE_URL, scope: RUN_TIME, value: "${db.DATABASE_URL}" }
       - { key: PUBLIC_BASE_URL, scope: RUN_TIME, value: "${APP_URL}" }
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }

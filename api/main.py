@@ -11,6 +11,10 @@ import os
 from pathlib import Path
 from typing import Annotated
 
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -193,7 +197,8 @@ def favicon():
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "dev_auth": AUTH_DEV_MODE}
+    from .db import DB_DIALECT, DB_SCHEMA
+    return {"ok": True, "dev_auth": AUTH_DEV_MODE, "db": DB_DIALECT, "db_schema": DB_SCHEMA if DB_DIALECT == "postgresql" else None}
 
 
 _APP_DIR = Path(__file__).resolve().parent.parent / "app"

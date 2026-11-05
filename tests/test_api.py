@@ -83,6 +83,8 @@ def test_login_vereist() -> None:
 
 def test_start_weigert_zonder_geheim_buiten_dev() -> None:
     env = {k: v for k, v in os.environ.items() if k not in ("AUTH_DEV_MODE", "API_JWT_SECRET")}
+    # Geen SQLite: buiten AUTH_DEV_MODE weigert api.db dat inmiddels hard.
+    env["DATABASE_URL"] = "postgresql://u:p@127.0.0.1:1/db"
     res = subprocess.run([sys.executable, "-c", "import api.auth"], cwd=ROOT, env=env, capture_output=True)
     assert res.returncode != 0 and b"API_JWT_SECRET" in res.stderr
 

@@ -7,3 +7,4 @@ PyJWT[crypto]>=2.8
 psycopg[binary]>=3.2
 httpx[http2]
 boto3>=1.35
+python-dotenv>=1.0
