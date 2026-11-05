@@ -5,7 +5,7 @@ options:
     iOS: "17.0"
 settings:
   base:
-    PODCAST_WEB_URL: http://127.0.0.1:8766/ui_kits/podcast-app/mobile.html
+    PODCAST_WEB_URL: https://hammerhead-app-eu5yj.ondigitalocean.app/app/ui_kits/podcast-app/mobile.html
 targets:
   PersonalPodcast:
     type: application

@@ -9,7 +9,7 @@ struct ContentView: View {
            let url = URL(string: raw), !raw.isEmpty {
             return url
         }
-        return URL(string: "http://127.0.0.1:8766/ui_kits/podcast-app/mobile.html")!
+        return URL(string: "https://hammerhead-app-eu5yj.ondigitalocean.app/app/ui_kits/podcast-app/mobile.html")!
     }
 
     var body: some View {
