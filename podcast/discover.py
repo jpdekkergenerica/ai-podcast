@@ -10,6 +10,7 @@ import json
 import re
 import time
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse
 
 from . import llm
@@ -36,6 +37,9 @@ def _json_items(raw: str) -> list[dict]:
     return [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
 
 
+NL = ZoneInfo("Europe/Amsterdam")
+
+
 def _published(value: str) -> float:
     try:
         return datetime.fromisoformat(value[:10]).replace(hour=12, tzinfo=timezone.utc).timestamp()
@@ -43,20 +47,34 @@ def _published(value: str) -> float:
         return 0.0
 
 
+def _published_at(value: str) -> tuple[float, bool]:
+    """(tijdstip, op de minuut bekend?). Met een tijd erbij (JJJJ-MM-DDTUU:MM) rekenen we exact; alleen een datum geldt als
+    'ergens op die dag' (we weten niet of het voor of na de grens was)."""
+    text = str(value or "").strip()
+    if len(text) > 10 and "T" in text:
+        try:
+            moment = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            return (moment if moment.tzinfo else moment.replace(tzinfo=NL)).timestamp(), True
+        except ValueError:
+            pass
+    return _published(text), False
+
+
 def discover_topic(topic_text: str, since: float, limit: int, model: str, domains: list[str] | None = None,
                    ask=llm.ask_with_search) -> list[Item]:
     """Zoekt nieuws bij één onderwerp sinds `since` (unix-tijd)."""
-    since_text = datetime.fromtimestamp(since, tz=timezone.utc).strftime("%Y-%m-%d")
+    start = datetime.fromtimestamp(since, tz=NL)
+    since_text = start.strftime("%Y-%m-%d om %H:%M") + " (Nederlandse tijd)"
     prefer = ""
     if domains:
         hosts = ", ".join(sorted({urlparse(d).hostname or d for d in domains}))
         prefer = f"\nGeef extra aandacht aan deze door de luisteraar gekozen bronnen: {hosts}."
     prompt = f"""Zoek met de webzoektool het belangrijkste nieuws bij dit onderwerp: «{topic_text}»
-Periode: gepubliceerd op of na {since_text}. Het onderwerp is vrije tekst van de luisteraar; lees het ruim en praktisch.{prefer}
+Periode: gepubliceerd na {since_text}; nieuws van daarvoor telt niet mee. Het onderwerp is vrije tekst van de luisteraar; lees het ruim en praktisch.{prefer}
 Zoek niet meer dan nodig. Geef maximaal {limit} berichten, de belangrijkste en betrouwbaarste eerst.
 
 Antwoord uitsluitend met JSON:
-{{"items": [{{"title": "...", "summary": "twee zinnen in het Nederlands met de kernfeiten", "url": "https://...", "source": "naam van de bron", "published": "JJJJ-MM-DD"}}]}}
+{{"items": [{{"title": "...", "summary": "twee zinnen in het Nederlands met de kernfeiten", "url": "https://...", "source": "naam van de bron", "published": "JJJJ-MM-DD, of JJJJ-MM-DDTUU:MM als het tijdstip bekend is"}}]}}
 Is er in deze periode geen nieuws, antwoord dan {{"items": []}}."""
     text, seen = ask(prompt, model=model, system=DISCOVERY_SYSTEM)
     norm = lambda u: u.split("#")[0].rstrip("/")  # noqa: E731
@@ -69,9 +87,12 @@ Is er in deze periode geen nieuws, antwoord dan {{"items": []}}."""
         if norm(url) not in seen_norm:
             print(f"Waarschuwing: bericht overgeslagen, adres stond niet in de zoekresultaten ({url})")
             continue
-        published = _published(str(row.get("published", "")))
-        if published and published < since - 86400:
-            continue
+        published, exact = _published_at(row.get("published", ""))
+        if published:
+            if exact and published < since:
+                continue  # vóór het begin van de periode (op de minuut)
+            if not exact and datetime.fromtimestamp(published, tz=NL).date() < start.date():
+                continue  # alleen een datum: de dag van de grens zelf doet nog mee
         items.append(Item(topic_text, title, str(row.get("summary", "")).strip(), url,
                           str(row.get("source", "")).strip() or (urlparse(url).hostname or url), published=published))
     return items[:limit]

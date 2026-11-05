@@ -185,3 +185,18 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def test_periode_telt_op_de_minuut_als_het_tijdstip_bekend_is() -> None:
+    """Gisteren 07:00 als begin: een bericht van 06:30 valt af, een van 07:30 niet; alleen een datum op de grensdag doet nog mee."""
+    nl = discover.ZoneInfo("Europe/Amsterdam")
+    since = datetime(2026, 11, 4, 7, 0, tzinfo=nl).timestamp()
+    ask = fake_search(
+        [row("Te vroeg", "https://nos.nl/1", "2026-11-04T06:30"),
+         row("Net na de grens", "https://nos.nl/2", "2026-11-04T07:30"),
+         row("Alleen datum grensdag", "https://nos.nl/3", "2026-11-04"),
+         row("Dag eerder", "https://nos.nl/4", "2026-11-03")],
+        ["https://nos.nl/1", "https://nos.nl/2", "https://nos.nl/3", "https://nos.nl/4"])
+    items = discover.discover_topic("Politiek", since, 8, "m", ask=ask)
+    assert [i.title for i in items] == ["Net na de grens", "Alleen datum grensdag"]
+    assert "2026-11-04 om 07:00" in ask.calls[0]["prompt"]

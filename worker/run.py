@@ -64,7 +64,7 @@ def _latest_published_ts(show: Show) -> float | None:
 
 def _skip_reason(cfg: dict) -> str:
     start = datetime.fromtimestamp(cfg["period"]["from"], tz=ZoneInfo("Europe/Amsterdam"))
-    return (f"Er was geen nieuw nieuws bij jouw onderwerpen sinds {start.day} {MONTHS[start.month - 1]}. "
+    return (f"Er was geen nieuw nieuws bij jouw onderwerpen sinds {start.day} {MONTHS[start.month - 1]} om {start:%H:%M}. "
             "Deze aflevering is overgeslagen; bij de volgende geplande aflevering kijken we opnieuw.")
 
 

@@ -51,17 +51,17 @@ def cover_path_for(show: Show):
 
 def show_to_cfg(show: Show, since: float | None = None) -> dict:
     """Configuratie voor de pijplijn. `since` (unix-tijd) is de grens van de nieuwsperiode: de vorige gepubliceerde
-    aflevering, of bij de eerste aflevering één planningsinterval terug."""
+    aflevering, of bij de eerste aflevering het vorige planningsmoment (bijv. gisteren 07:00)."""
     import time
-    from .schedule import merged
+    from datetime import datetime, timezone
+    from .schedule import merged, previous_publication
     sched = merged(show.schedule)
     duration = {**DEFAULT_DURATION, **(show.duration or {})}
     duration["max_minutes"] = min(float(duration["max_minutes"]), MAX_MINUTES_CAP)
     relevance = {**DEFAULT_RELEVANCE, **(show.relevance or {})}
     now = time.time()
     if since is None:
-        interval_days = sched["every_days"] or (1 if len(sched["days"]) >= 5 else 7 if len(sched["days"]) == 1 else 3)
-        since = now - interval_days * 86400
+        since = previous_publication(sched, datetime.fromtimestamp(now, tz=timezone.utc)).timestamp()
     relevance["lookback_hours"] = max(6, min(24 * 30, round((now - since) / 3600) + 1))
     own = [s for s in show.sources if not s.error or s.kind == "website"]
     cover = cover_path_for(show)

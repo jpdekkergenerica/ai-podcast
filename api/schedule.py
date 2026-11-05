@@ -59,6 +59,23 @@ def next_publication(raw: dict | None, last_for: date | None, now: datetime, hor
     return None
 
 
+def previous_publication(raw: dict | None, now: datetime, min_gap: timedelta = timedelta(hours=6)) -> datetime:
+    """Het laatste publicatiemoment vóór nu (lokale tijd): vanaf dan loopt het nieuws voor een eerste aflevering.
+    Ligt dat minder dan `min_gap` terug, dan nemen we het moment daarvoor, anders is er bijna niets te melden."""
+    sched = merged(raw)
+    local = now.astimezone(ZoneInfo(sched["timezone"]))
+    if sched.get("every_days"):
+        upcoming = _moment(sched, local.date())
+        if upcoming <= local:
+            upcoming = _moment(sched, local.date() + timedelta(days=1))
+        return upcoming - timedelta(days=int(sched["every_days"]))
+    for back in range(0, 15):
+        day = local.date() - timedelta(days=back)
+        if day.weekday() in sched["days"] and _moment(sched, day) <= local - min_gap:
+            return _moment(sched, day)
+    return local - timedelta(days=1)
+
+
 def as_utc(moment: datetime) -> datetime:
     """SQLite geeft naïeve datums terug (UTC); behandel die als UTC in plaats van lokale tijd."""
     return moment.replace(tzinfo=timezone.utc) if moment.tzinfo is None else moment.astimezone(timezone.utc)

@@ -343,6 +343,21 @@ def test_feed_en_media_beantwoorden_head_en_range() -> None:
     assert part.status_code == 206 and len(part.content) == 10
 
 
+def test_eerste_aflevering_begint_bij_het_vorige_planningsmoment() -> None:
+    """Een nieuwe podcast pakt het nieuws vanaf het vorige publicatiemoment (gisteren 07:00), niet vanaf middernacht of 24 uur terug."""
+    from zoneinfo import ZoneInfo
+    from api.schedule import previous_publication
+    nl = lambda d, h, m: datetime(2026, 11, d, h, m, tzinfo=ZoneInfo("Europe/Amsterdam"))
+    daily = {"days": [0, 1, 2, 3, 4, 5, 6], "time": "07:00"}
+    assert previous_publication(daily, nl(5, 2, 31)).isoformat() == "2026-11-04T07:00:00+01:00"    # 's nachts: gisteren 07:00
+    assert previous_publication(daily, nl(5, 14, 0)).isoformat() == "2026-11-05T07:00:00+01:00"    # na 07:00: vandaag 07:00
+    assert previous_publication(daily, nl(5, 8, 0)).isoformat() == "2026-11-04T07:00:00+01:00"     # minder dan 6 uur geleden: het moment daarvoor
+    weekly = {"days": [0], "time": "07:00"}                                                         # elke maandag
+    assert previous_publication(weekly, nl(5, 10, 0)).isoformat() == "2026-11-02T07:00:00+01:00"
+    every = {"every_days": 2, "time": "07:00"}
+    assert previous_publication(every, nl(5, 2, 31)).isoformat() == "2026-11-03T07:00:00+01:00"
+
+
 # ---------- eigen bronnen ----------
 
 def test_eigen_bronnen_optioneel_met_naam_en_foutmelding() -> None:
