@@ -9,7 +9,8 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 <script src="../../_dev/ds-loader.js"></script>
-<script>window.PODCAST_API_BASE = window.PODCAST_API_BASE || "http://127.0.0.1:8000";</script>
+<script>window.PODCAST_API_BASE = window.PODCAST_API_BASE || (
+    /^(127\.0\.0\.1|localhost)$/.test(location.hostname) && location.port !== "8000" ? "http://127.0.0.1:8000" : location.origin);</script>
 </head>
 <body style="background:var(--gray-100);margin:0">
 <div id="root" style="display:flex;gap:32px;padding:24px;justify-content:center;align-items:flex-start;flex-wrap:wrap;min-height:100vh;box-sizing:border-box"></div>

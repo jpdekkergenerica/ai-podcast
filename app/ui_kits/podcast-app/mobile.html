@@ -12,7 +12,8 @@
 <script src="../../_dev/ds-loader.js"></script>
 <script>
   // Zelfde origin als de API wanneer geserveerd via /app/…
-  window.PODCAST_API_BASE = window.PODCAST_API_BASE || (location.port === "8000" ? location.origin : "http://127.0.0.1:8000");
+  window.PODCAST_API_BASE = window.PODCAST_API_BASE || (
+    /^(127\.0\.0\.1|localhost)$/.test(location.hostname) && location.port !== "8000" ? "http://127.0.0.1:8000" : location.origin);
 </script>
 <style>
   html, body, #root { height: 100%; margin: 0; background: var(--bg-primary); }
