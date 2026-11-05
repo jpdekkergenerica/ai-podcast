@@ -292,11 +292,17 @@ def test_worker_zet_alleen_aan_de_beurt_zijnde_podcasts_klaar() -> None:
     db.close()
     client.post(f"/me/podcasts/{pc['id']}/pause", headers=c)
 
-    maandag = lambda uur, minuut: utc(2026, 11, 2, uur, minuut)  # NL = UTC+1
-    assert enqueue_due(maandag(5, 0)) == 0   # 06:00 lokaal: nog niet
-    assert enqueue_due(maandag(9, 10)) == 0  # 10:10 lokaal: inhaalruimte voorbij
-    assert enqueue_due(maandag(6, 0)) == 1   # alleen a: gekozen dag en tijd (b is dinsdag, c is gepauzeerd)
-    assert enqueue_due(maandag(6, 10)) == 0  # a heeft een openstaande run
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    nl = ZoneInfo("Europe/Amsterdam")
+    vandaag = datetime.now(nl).date()
+    maandag_datum = vandaag + timedelta(days=(7 - vandaag.weekday()) % 7 or 7)  # altijd een toekomstige maandag
+    maandag = lambda uur, minuut: datetime(maandag_datum.year, maandag_datum.month, maandag_datum.day, uur, minuut, tzinfo=nl).astimezone(timezone.utc)  # lokale NL-tijd
+
+    assert enqueue_due(maandag(6, 0)) == 0   # 06:00 lokaal: nog niet
+    assert enqueue_due(maandag(10, 10)) == 0  # 10:10 lokaal: inhaalruimte voorbij
+    assert enqueue_due(maandag(7, 0)) == 1   # alleen a: gekozen dag en tijd (b is dinsdag, c is gepauzeerd)
+    assert enqueue_due(maandag(7, 10)) == 0  # a heeft een openstaande run
     assert [j.trigger for j in jobs_of(pa["id"])][-1] == "schedule"
     assert [j.trigger for j in jobs_of(pb["id"])] == ["initial"] and [j.trigger for j in jobs_of(pc["id"])] == ["initial"]
 
