@@ -26,42 +26,60 @@ struct StartView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
 
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill").font(.title3).foregroundStyle(.white)
-                        .frame(width: 40, height: 40).background(Theme.brandFill, in: RoundedRectangle(cornerRadius: 10))
-                    Text("yourownpod").font(.title3.weight(.semibold)).foregroundStyle(.white)
+            GeometryReader { geo in
+                // Muziekbalk ~midden van het volle scherm (video is full-bleed).
+                let fullH = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
+                let barTopInFull = fullH * 0.42
+                let barBottomInFull = fullH * 0.58
+                // Coordinaten in deze GeometryReader beginnen onder de safe area.
+                let barTop = barTopInFull - geo.safeAreaInsets.top
+                let barBottom = barBottomInFull - geo.safeAreaInsets.top
+                let headerBottom: CGFloat = 56
+                let titleY = (headerBottom + max(headerBottom + 8, barTop)) / 2
+
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "mic.fill").font(.title3).foregroundStyle(.white)
+                            .frame(width: 40, height: 40).background(Theme.brandFill, in: RoundedRectangle(cornerRadius: 10))
+                        Text("yourownpod").font(.title3.weight(.semibold)).foregroundStyle(.white)
+                    }
+
+                    Spacer(minLength: 0)
+                        .frame(height: max(0, titleY - headerBottom / 2 - 28))
+
+                    Text("Jouw onderwerpen, jouw podcast")
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer(minLength: 0)
+                        .frame(height: max(24, barTop - titleY - 28))
+
+                    // Vrije band voor de muziekbalk.
+                    Color.clear.frame(height: max(80, barBottom - barTop))
+
+                    Text("Kies waar je nieuws over wilt horen. Wij maken en publiceren de afleveringen in je eigen feed. Luisteren kan in deze app of in Apple Podcasts.")
+                        .foregroundStyle(.white.opacity(0.9))
+                    if let error {
+                        Text(error).font(.subheadline).foregroundStyle(Color(red: 1, green: 0.55, blue: 0.5)).padding(.top, 8)
+                    }
+
+                    Spacer(minLength: 16)
+
+                    SignInWithAppleButton(.continue) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        handle(result)
+                    }
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 52)
+                    .disabled(busy)
+                    if busy { ProgressView().tint(.white).frame(maxWidth: .infinity).padding(.top, 12) }
                 }
-
-                Spacer(minLength: 24)
-
-                Text("Jouw onderwerpen, jouw podcast")
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundStyle(.white)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                // Vrije band voor de muziekbalk in de video.
-                Spacer().frame(height: 200)
-
-                Text("Kies waar je nieuws over wilt horen. Wij maken en publiceren de afleveringen in je eigen feed. Luisteren kan in deze app of in Apple Podcasts.")
-                    .foregroundStyle(.white.opacity(0.9))
-                if let error {
-                    Text(error).font(.subheadline).foregroundStyle(Color(red: 1, green: 0.55, blue: 0.5)).padding(.top, 8)
-                }
-
-                Spacer(minLength: 24)
-
-                SignInWithAppleButton(.continue) { request in
-                    request.requestedScopes = [.fullName, .email]
-                } onCompletion: { result in
-                    handle(result)
-                }
-                .signInWithAppleButtonStyle(.white)
-                .frame(height: 52)
-                .disabled(busy)
-                if busy { ProgressView().tint(.white).frame(maxWidth: .infinity).padding(.top, 12) }
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
             }
-            .padding(24)
         }
     }
 
