@@ -120,7 +120,7 @@ def _try_refresh_feed(show_id: str) -> None:
         print(f"refresh_feed({show_id}) mislukt: {type(e).__name__}: {e}")
 
 
-@app.get("/feeds/{show_id}.xml")
+@app.api_route("/feeds/{show_id}.xml", methods=["GET", "HEAD"])  # Apple Podcasts controleert met HEAD
 def private_feed(show_id: str, token: str = Query(...), db: Session = Depends(get_db)):
     show = _show_by_token(db, show_id, token)
     feed_file = site_dir(show.id) / "feed.xml"
@@ -132,7 +132,7 @@ def private_feed(show_id: str, token: str = Query(...), db: Session = Depends(ge
     return FileResponse(feed_file, media_type="application/rss+xml")
 
 
-@app.get("/media/{show_id}/{filename}")
+@app.api_route("/media/{show_id}/{filename}", methods=["GET", "HEAD"])
 def private_media(show_id: str, filename: str, token: str = Query(...), db: Session = Depends(get_db)):
     if "/" in filename or ".." in filename:
         raise HTTPException(400, "Ongeldige bestandsnaam")
@@ -157,7 +157,7 @@ def private_media(show_id: str, filename: str, token: str = Query(...), db: Sess
     return FileResponse(path)
 
 
-@app.get("/shows/{show_id}/site/{path:path}")
+@app.api_route("/shows/{show_id}/site/{path:path}", methods=["GET", "HEAD"])
 def private_site(show_id: str, path: str, token: str = Query(...), db: Session = Depends(get_db)):
     _show_by_token(db, show_id, token)
     root = site_dir(show_id).resolve()

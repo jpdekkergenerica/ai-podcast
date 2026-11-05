@@ -315,6 +315,19 @@ def test_privefeed_bevat_het_omslag() -> None:
     assert "<itunes:image" in body and "cover-" in body and "token=" in body.split("<itunes:image", 1)[1].split(">", 1)[0]
 
 
+def test_feed_en_media_beantwoorden_head_en_range() -> None:
+    """Apple Podcasts controleert een aflevering met HEAD (en haalt hem op met Range); een 405 geeft 'tijdelijk niet beschikbaar'."""
+    h = login("head-check")
+    p = make(h)
+    feed = feed_path(p)
+    assert client.head(feed).status_code == 200
+    cover = p["cover_url"].replace("http://testserver", "")
+    head = client.head(cover)
+    assert head.status_code == 200 and head.headers["content-type"] == "image/jpeg"
+    part = client.get(cover, headers={"Range": "bytes=0-9"})
+    assert part.status_code == 206 and len(part.content) == 10
+
+
 # ---------- eigen bronnen ----------
 
 def test_eigen_bronnen_optioneel_met_naam_en_foutmelding() -> None:
