@@ -220,6 +220,11 @@ persoonsgegevens voor advertenties.</p>
 </body></html>"""
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(Path(__file__).resolve().parent.parent / "app" / "assets" / "favicon.ico", media_type="image/x-icon")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"ok": True, "dev_auth": AUTH_DEV_MODE}
