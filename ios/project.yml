@@ -15,11 +15,11 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: PersonalPodcast/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: nl.generica.personalpodcast
+        PRODUCT_BUNDLE_IDENTIFIER: nl.generica.yourownpod
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: false
         CODE_SIGN_ENTITLEMENTS: PersonalPodcast/PersonalPodcast.entitlements
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""  # vul je Team ID in (developer.apple.com > Membership)
+        DEVELOPMENT_TEAM: BU2QV95AFM  # Teamblender
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

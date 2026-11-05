@@ -42,7 +42,7 @@ services:
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }
       - { key: SPACES_REGION, scope: RUN_TIME, value: ams3 }
-      - { key: APPLE_CLIENT_ID, scope: RUN_TIME, value: nl.generica.personalpodcast }
+      - { key: APPLE_CLIENT_ID, scope: RUN_TIME, value: nl.generica.yourownpod }
 
 workers:
   - name: worker
@@ -60,5 +60,5 @@ workers:
       - { key: STORAGE_ROOT, scope: RUN_TIME, value: /tmp/storage }
       - { key: SPACES_BUCKET, scope: RUN_TIME, value: yourownpod-media }
       - { key: SPACES_REGION, scope: RUN_TIME, value: ams3 }
-      - { key: APNS_BUNDLE_ID, scope: RUN_TIME, value: nl.generica.personalpodcast }
+      - { key: APNS_BUNDLE_ID, scope: RUN_TIME, value: nl.generica.yourownpod }
       - { key: APNS_USE_SANDBOX, scope: RUN_TIME, value: "0" }
