@@ -13,7 +13,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
@@ -218,6 +218,11 @@ podcast-instellingen, RSS-feeds die je opgeeft, en gegenereerde afleveringen.</p
 persoonsgegevens voor advertenties.</p>
 <p>Je kunt je account en alle data verwijderen in de app onder Account → Verwijder account.</p>
 </body></html>"""
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse("/app/ui_kits/podcast-app/mobile.html")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
