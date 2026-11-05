@@ -19,7 +19,16 @@ struct AccountView: View {
 
     var body: some View {
         List {
-            Section { Label(me?.email ?? "Ingelogd met Apple", systemImage: "person.crop.circle") }.listRowBackground(Theme.card)
+            Section {
+                HStack(spacing: 16) {
+                    AvatarView(name: session.displayName, email: me?.email, size: 64)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(session.displayName ?? "Apple-account").font(.headline)
+                        Text(me?.email ?? "Ingelogd met Apple").font(.subheadline).foregroundStyle(Theme.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }.listRowBackground(Theme.card)
 
             Section {
                 LabeledContent("Pushmeldingen", value: pushText)

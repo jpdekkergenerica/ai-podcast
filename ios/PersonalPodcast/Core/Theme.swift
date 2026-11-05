@@ -93,3 +93,28 @@ struct StatusPill: View {
         .background(colors.0, in: Capsule())
     }
 }
+
+/// Avatar met initialen (Apple geeft geen profielfoto door).
+struct AvatarView: View {
+    let name: String?
+    let email: String?
+    var size: CGFloat = 56
+
+    private var initials: String {
+        let words = (name ?? "").split(separator: " ").filter { !$0.isEmpty }
+        if words.count >= 2, let a = words.first?.first, let b = words.last?.first { return "\(a)\(b)".uppercased() }
+        if let a = words.first?.first { return String(a).uppercased() }
+        if let a = email?.first(where: { $0.isLetter }) { return String(a).uppercased() }
+        return ""
+    }
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Theme.brandFill)
+            if initials.isEmpty { Image(systemName: "person.fill").font(.system(size: size * 0.45)).foregroundStyle(.white) }
+            else { Text(initials).font(.system(size: size * 0.4, weight: .semibold)).foregroundStyle(.white) }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}

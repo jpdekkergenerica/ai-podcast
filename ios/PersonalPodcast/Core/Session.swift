@@ -7,6 +7,8 @@ final class Session {
     private(set) var token: String?
     private(set) var booting = true
     private(set) var devAuth = false
+    /// Naam uit Sign in with Apple. Apple geeft die alleen de eerste keer; daarom bewaren we hem op dit toestel.
+    private(set) var displayName: String? = UserDefaults.standard.string(forKey: "profile.name")
     var isAuthed: Bool { token != nil }
 
     init() {
@@ -26,14 +28,24 @@ final class Session {
         await PushManager.shared.refresh()
     }
 
-    func signIn(appleToken: String, email: String?) async throws {
+    func signIn(appleToken: String, email: String?, name: String?) async throws {
         set(try await APIClient.shared.appleLogin(identityToken: appleToken, email: email).accessToken)
+        if let name, !name.isEmpty { saveName(name) }
     }
 
-    func signInDev() async throws { set(try await APIClient.shared.devLogin().accessToken) }
+    func signInDev() async throws {
+        set(try await APIClient.shared.devLogin().accessToken)
+        saveName("Ontwikkelaar")
+    }
 
     func logout() {
         set(nil)
+        saveName(nil)
+    }
+
+    private func saveName(_ name: String?) {
+        displayName = name
+        UserDefaults.standard.set(name, forKey: "profile.name")
     }
 
     private func set(_ value: String?) {

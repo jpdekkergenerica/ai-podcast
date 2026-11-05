@@ -24,7 +24,7 @@ struct StartView: View {
             Spacer()
             VStack(spacing: 12) {
                 SignInWithAppleButton(.continue) { request in
-                    request.requestedScopes = [.email]
+                    request.requestedScopes = [.fullName, .email]
                 } onCompletion: { result in
                     handle(result)
                 }
@@ -53,7 +53,8 @@ struct StartView: View {
             }
             Task {
                 busy = true; error = nil
-                do { try await session.signIn(appleToken: token, email: credential.email) }
+                do { let name = credential.fullName.flatMap { PersonNameComponentsFormatter().string(from: $0) }
+                    try await session.signIn(appleToken: token, email: credential.email, name: name) }
                 catch { self.error = error.localizedDescription }
                 busy = false
             }
